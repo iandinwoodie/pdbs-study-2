@@ -1,0 +1,695 @@
+---
+- text: Unique owner identifier
+  type: INT
+  columns:
+    - owner_id
+- text: Zip code
+  type: STRING
+  columns:
+    - zip_code
+- text: Is your dog a purebred?
+  type: BOOL
+  columns:
+    - purebred
+- text: Is the breed recognized by the AKC?
+  type: BOOL
+  columns:
+    - akc
+- text: Please select the breed
+  type: RADIO
+  columns:
+    - purebred_breed
+  responses:
+    - affenpinscher
+    - afghan hound
+    - airedale terrier
+    - akita
+    - alaskan malamute
+    - american english coonhound
+    - american eskimo dog
+    - american foxhound
+    - american hairless terrier
+    - american leopard hound
+    - american staffordshire terrier
+    - american water spaniel
+    - anatolian shepherd dog
+    - appenzeller sennenhunde
+    - australian cattle dog
+    - australian shepherd
+    - australian terrier
+    - azawakh
+    - barbet
+    - basenji
+    - basset fauve de bretagne
+    - basset hound
+    - bavarian mountain scent hound
+    - beagle
+    - bearded collie
+    - beauceron
+    - bedlington terrier
+    - belgian laekenois
+    - belgian malinois
+    - belgian sheepdog
+    - belgian tervuren
+    - bergamasco sheepdog
+    - berger picard
+    - bernese mountain dog
+    - bichon frise
+    - biewer terrier
+    - black and tan coonhound
+    - black russian terrier
+    - bloodhound
+    - bluetick coonhound
+    - boerboel
+    - bolognese
+    - border collie
+    - border terrier
+    - borzoi
+    - boston terrier
+    - bouvier des flandres
+    - boxer
+    - boykin spaniel
+    - briard
+    - brittany
+    - brussels griffon
+    - bull terrrier
+    - bull terrier (miniature)
+    - bulldog
+    - bullmastiff
+    - cairn terrier
+    - canaan dog
+    - cane corso
+    - cardigan welsh corgi
+    - cavalier king charles spaniel
+    - cesky terrier
+    - chesapeake bay retriever
+    - chihuahua
+    - chinese crested dog
+    - chinese shar pei
+    - chinook
+    - chow chow
+    - cirneco delletna
+    - clumber spaniel
+    - cocker spaniel
+    - collie
+    - coton de tulear
+    - curly-coated retriever
+    - dachshund
+    - dalmatian
+    - dandie dinmont terrier
+    - doberman pinscher
+    - doque de bordeaux
+    - english cocker spaniel
+    - english foxhound
+    - english setter
+    - english springer spaniel
+    - english toy spaniel
+    - entlebucher mountain dog
+    - field spaniel
+    - finnish lapphund
+    - finnish spitz
+    - flat-coated retriever
+    - french bulldog
+    - german pinscher
+    - german shepherd dog
+    - german shorthaired pointer
+    - german wirehaired pointer
+    - giant schnauzer
+    - glen of imaal terrier
+    - golden retriever
+    - gordon setter
+    - great dane
+    - great pyrenees
+    - greater swiss mountain dog
+    - greyhound
+    - harrier
+    - havanese
+    - ibizan hound
+    - icelandic sheepdog
+    - irish red and white setter
+    - irish setter
+    - irish terrier
+    - irish water spaniel
+    - irish wolfhound
+    - itialian greyhound
+    - japanese chin
+    - keeshond
+    - kerry blue terrier
+    - komondor
+    - kuvasz
+    - labrador retriever
+    - lagotto romagnolo
+    - lakeland terrier
+    - leonberger
+    - lhasa apso
+    - lowchen
+    - maltese
+    - manchester terrier
+    - mastiff
+    - miniature american shepherd
+    - miniature bull terrier
+    - miniature pinscher
+    - miniature schnauzer
+    - neapolitan mastiff
+    - newfoundland
+    - norfolk terrier
+    - norwegian buhund
+    - norwegian elkhound
+    - norwegian lundehund
+    - norwich terrier
+    - nova scotia duck-tolling retriever
+    - old english sheepdog
+    - otterhound
+    - papillon
+    - parson russell terrier
+    - pekingese
+    - pembroke welsh corgi
+    - petit basset griffon vendeen
+    - pharaoh hound
+    - plott
+    - pointer
+    - polish lowland sheepdog
+    - pomeranian
+    - poodle
+    - portuguese podengo
+    - portuguese water dog
+    - pug
+    - puli
+    - pumi
+    - pyrenean shepherd
+    - rat terrier
+    - redbone coonhound
+    - rhodesian ridgeback
+    - rottweiler
+    - russel terrier
+    - st. benard
+    - saluki
+    - samoyed
+    - schapendoes
+    - schipperke
+    - scottish deerhound
+    - scottish terrier
+    - sealyham terrier
+    - shetland sheepdog
+    - shiba inu
+    - shih tzu
+    - siberian husky
+    - silky terrier
+    - skye terrier
+    - sloughi
+    - smooth fox terrier
+    - soft-coated wheaten terrier
+    - spanish water dog
+    - spinone italiano
+    - staffordshire bull terrier
+    - standard schnauzer
+    - sussex spaniel
+    - swedish valhund
+    - tibetan mastiff
+    - tibetan spaniel
+    - tibetan terrier
+    - toy fox terrier
+    - treeing water coonhound
+    - vizsla
+    - weimaraner
+    - welsh springer spaniel
+    - welsh terrier
+    - west highland white terrier
+    - whippet
+    - wire fox terrier
+    - wirehaired pointing griffon
+    - wirehaired vizsla
+    - xoloitzcuintli
+    - yorkshire terrier
+- text: Where did you acquire your dog?
+  type: RADIO
+  columns:
+    - acquisition_source
+  responses:
+    - online - rescue
+    - online - purchase
+    - pet store
+    - shelter/rescue
+    - breeder
+    - self bred
+    - friend/family member
+    - found
+    - other
+- text: What age did you acquire your dog (in months)?
+  type: INT
+  columns:
+    - dog_age_acq_months
+- text: What age did you acquire your dog (in years)?
+  type: INT
+  columns:
+    - dog_age_acq_years
+- text: How old is your dog currently (in months)?
+  type: INT
+  columns:
+    - dog_age_today_months
+- text: How old is your dog currently (in years)?
+  type: INT
+  columns:
+    - dog_age_today_years
+- text: What gender is your dog?
+  type: RADIO
+  columns:
+    - dog_sex
+  responses:
+    - male
+    - female
+- text: Is your dog spayed/neutered?
+  type: BOOL
+  columns:
+    - dog_spayed
+- text: How old was your dog when spayed/neutered (in months)?
+  type: INT
+  columns:
+    - dog_sex_month
+- text: How old was your dog when spayed/neutered (in years)?
+  type: INT
+  columns:
+    - dog_sex_year
+- text: What is the current weight of your dog?
+  type: INT
+  columns:
+    - dog_weight
+- text: >-
+    Have you ever sought professional help in an attempt to deal with the
+    problematic behavior of your dog?
+  type: BOOL
+  columns:
+    - prof_help
+- text: What type of professional help did you consult?
+  type: CHECKBOX
+  columns:
+    - prof_type_1
+    - prof_type_2
+    - prof_type_3
+  responses:
+    - trainer
+    - behavior consultant
+    - veterinarian
+- text: >-
+    Did the veterinarian discover any medical issue that might be relevant to
+    the behavior of your dog?
+  type: BOOL
+  columns:
+    - prof_discover
+- text: Which of the following health issues were found?
+  type: CHECKBOX
+  columns:
+    - health_iss_1
+    - health_iss_2
+    - health_iss_3
+    - health_iss_4
+    - health_iss_5
+    - health_iss_6
+  responses:
+    - thyroid problem
+    - seizures
+    - pain
+    - tumor
+    - cognitive dysfunction
+    - other
+- text: Have you seen multiple dog trainers for your dog?
+  type: BOOL
+  columns:
+    - trainer_mult
+- text: How many dog trainers would you say you have consulted for your dog?
+  type: INT
+  columns:
+    - trainer_count
+- text: Were the dog trainers credentialed?
+  type: BOOL
+  columns:
+    - trainer_cred
+- text: >-
+    Were the trainers certified by the Certification Council of Professional Dog
+    Trainers (CPDT-KA or CPDT-KSA)?
+  type: BOOL
+  columns:
+    - trainer_cred_type
+- text: Have you seen multiple dog behavior consultants for your dog?
+  type: BOOL
+  columns:
+    - consultant_mult
+- text: >-
+    How many dog behavior consultants would you say you have consulted for
+    your dog?
+  type: INT
+  columns:
+    - consultant_count
+- text: Were the dog behavior consultants credentialed?
+  type: BOOL
+  columns:
+    - consultant_cred
+- text: What type of credentials did the behavior consultants hold?
+  type: CHECKBOX
+  columns:
+    - consultant_cred_type_1
+    - consultant_cred_type_2
+    - consultant_cred_type_3
+    - consultant_cred_type_4
+    - consultant_cred_type_5
+  responses:
+    - CBCC-KA
+    - CDBC
+    - CAAB or ACAAB
+    - DACVB
+    - other
+- text: Which type of professional worked out best in terms of results?
+  type: RADIO
+  columns:
+    - best_prof
+  responses:
+    - veterinarian
+    - non-credentialed dog trainer
+    - credentialed dog trainer
+    - non-credentialed behavior consultant
+    - certified behavior consultant (CBCC-KA or CDBC)
+    - certified behaviorist (ACAAB or CAAB)
+    - certified veterinary behaviorist (DACVB)
+    - combination of the above
+- text: Which of the following training methods were used for basic obedience?
+  type: CHECKBOX
+  columns:
+    - training_methods_1
+    - training_methods_2
+    - training_methods_3
+    - training_methods_4
+  responses:
+    - reward-based
+    - punishment-based
+    - combination
+    - compulsion
+- text: What types of equipment were recommended and utilized?
+  type: CHECKBOX
+  columns:
+    - equipment_1
+    - equipment_2
+    - equipment_3
+    - equipment_4
+    - equipment_5
+    - equipment_6
+    - equipment_7
+    - equipment_8
+    - equipment_9
+    - equipment_10
+    - equipment_11
+  responses:
+    - flat collar
+    - martingale
+    - slip/choke/prong collar
+    - head halter
+    - harness (chest)
+    - anti-bark collar
+    - remote collar
+    - other
+    - harness (shoulders)
+    - muzzle
+    - clicker or whistle
+- text: Was medication recommended for dog?
+  type: BOOL
+  columns:
+    - med_rec
+- text: Did you pursue the option of medication for dog?
+  type: BOOL
+  columns:
+    - med_pursued
+- text: Which of the following medications were administered?
+  type: CHECKBOX
+  columns:
+    - med_list_1
+    - med_list_2
+    - med_list_3
+    - med_list_4
+    - med_list_5
+    - med_list_6
+    - med_list_7
+    - med_list_8
+    - med_list_9
+    - med_list_10
+    - med_list_11
+    - med_list_12
+    - med_list_13
+  responses:
+    - fluoxetine (prozac)
+    - sertraline (zoloft)
+    - paroxetine (paxil)
+    - citalopram (celexa)
+    - escitalopram (lexapro)
+    - clomipramine
+    - trazadone
+    - buspirone
+    - valium-type drug
+    - clonidine
+    - acepromazine (ace)
+    - diphenhydramine
+    - other
+- text: >-
+    Which drug or combination of medications worked best for your dogs problem?
+  type: CHECKBOX
+  columns:
+    - med_combo_1
+    - med_combo_2
+    - med_combo_3
+    - med_combo_4
+    - med_combo_5
+    - med_combo_6
+    - med_combo_7
+    - med_combo_8
+    - med_combo_9
+    - med_combo_10
+    - med_combo_11
+    - med_combo_12
+    - med_combo_13
+  responses:
+    - fluoxetine (prozac)
+    - sertraline (zoloft)
+    - paroxetine (paxil)
+    - citalopram (celexa)
+    - escitalopram (lexapro)
+    - clomipramine (clomicalm)
+    - trazadone
+    - buspirone
+    - valium-type drug
+    - clonidine
+    - acepromazine (ace)
+    - diphenhydramine (benadryl)
+    - other
+- loop_start:
+  - fluoxetine
+  - sertraline
+  - paroxetine
+  - citalopram
+  - escitalopram
+  - clomipramine
+  - trazadone
+  - buspirone
+  - valium
+  - clonidine
+  - acepromazine
+  - diphenhydramine
+  - other
+- text: What was the dosage of (iter) administered (in mg)?
+  type: INT
+  columns:
+    - (iter)_dose
+- text: How many times was the (iter) administered per day?
+  type: INT
+  columns:
+    - (iter)_freq
+- text: Was the (iter) only administered when necessary?
+  type: BOOL
+  columns:
+    - (iter)_nec
+- text: For how long was (iter) administered (in weeks)?
+  type: INT
+  columns:
+    - (iter)_span_wk
+- text: For how long was (iter) administered (in months)?
+  type: INT
+  columns:
+    - (iter)_span_mn
+- text: For how long was (iter) administered (in years)?
+  type: INT
+  columns:
+    - (iter)_span_yr
+- loop_end:
+- text: Did you use an alternative treatment for your dog?
+  type: BOOL
+  columns:
+    - alt_treatment
+- text: Which of the following alternative treatments were used?
+  type: CHECKBOX
+  columns:
+    - alt_med_type_1
+    - alt_med_type_2
+    - alt_med_type_3
+    - alt_med_type_4
+    - alt_med_type_5
+    - alt_med_type_6
+    - alt_med_type_7
+    - alt_med_type_8
+    - alt_med_type_9
+    - alt_med_type_10
+    - alt_med_type_11
+    - alt_med_type_12
+    - alt_med_type_13
+    - alt_med_type_15
+    - alt_med_type_16
+    - alt_med_type_17
+    - alt_med_type_18
+  responses:
+    - acupuncture/acupressure
+    - aromatherapy
+    - cbd (cannabidiol)
+    - chiropractic
+    - dog tv
+    - herbal/botanical med.
+    - homeopathy
+    - hormonal
+    - hydrotherapy
+    - magnetic field therapy
+    - massage
+    - music therapy
+    - nutraceuticals
+    - pheromone therapy
+    - pressure wraps
+    - reiki
+    - vision blocking
+- text: Was a behavior modifying strategy recommended?
+  type: BOOL
+  columns:
+    - behavior_prog_rec
+- text: Which behavior modifying strategy was recommended?
+  type: RADIO
+  columns:
+    - behavior_prog
+  responses:
+    - systematic desensitization
+    - counterconditioning
+    - combination of systematic desensitization and counterconditioning
+    - leadership program
+    - medication w/ behavior mod. program
+    - medication w/o behavior mod. program
+- text: Which of the following techniques were used?
+  type: CHECKBOX
+  columns:
+    - behavior_tech_used_1
+    - behavior_tech_used_2
+    - behavior_tech_used_3
+    - behavior_tech_used_4
+    - behavior_tech_used_5
+    - behavior_tech_used_6
+    - behavior_tech_used_7
+    - behavior_tech_used_8
+    - behavior_tech_used_9
+    - behavior_tech_used_10
+    - behavior_tech_used_11
+    - behavior_tech_used_12
+    - behavior_tech_used_13
+    - behavior_tech_used_14
+    - behavior_tech_used_15
+    - behavior_tech_used_16
+    - behavior_tech_used_17
+    - behavior_tech_used_18
+    - behavior_tech_used_19
+  responses:
+    - mental stim./enrich.
+    - relaxation protocol
+    - increase in exercise
+    - habituation
+    - flooding
+    - response blocking
+    - management
+    - red./elim. stressors
+    - marker/clicker train.
+    - play
+    - part. in dog sports
+    - ignoring bad behavior
+    - training alternatives
+    - short/freq. sessions
+    - group classes
+    - private sessions
+    - change in diet
+    - improve dog-owner com.
+    - other
+- text: Which combination of techniques worked best?
+  type: CHECKBOX
+  columns:
+    - behavior_tech_best_1
+    - behavior_tech_best_2
+    - behavior_tech_best_3
+    - behavior_tech_best_4
+    - behavior_tech_best_5
+    - behavior_tech_best_6
+    - behavior_tech_best_7
+    - behavior_tech_best_8
+    - behavior_tech_best_9
+    - behavior_tech_best_10
+    - behavior_tech_best_11
+    - behavior_tech_best_12
+    - behavior_tech_best_13
+    - behavior_tech_best_14
+    - behavior_tech_best_15
+    - behavior_tech_best_16
+    - behavior_tech_best_17
+    - behavior_tech_best_18
+    - behavior_tech_best_19
+  responses:
+    - mental stimulation and enrichment
+    - relaxation protocol
+    - increase in physical exercise
+    - habituation
+    - flooding
+    - response blocking
+    - management
+    - reduction or elimination of other stressors or distractions while training
+    - marker or clicker training
+    - play
+    - participation in dog sports
+    - ignoring bad behavior
+    - training alternatives to problem behavior
+    - short but frequent sessions v. longer, infrequent sessions
+    - group classes
+    - private sessions
+    - change in diet
+    - improve communication between dog and owner
+    - other
+- text:
+    - Response to treatment for aggression to familiar people in the home
+    - Response to treatment for aggression to strangers visiting the home
+    - Response to treatment for aggression to strangers away from home
+    - Response to treatment for aggression to another dog in the home
+    - Response to treatment for aggression to unfamiliar dogs visiting the home
+    - Response to treatment for aggression to unfamiliar dogs outside on walks (off lead)
+    - Response to treatment for aggression to unfamiliar dogs outside on walks (on lead)
+    - Response to treatment for aggression to veterinarians
+    - Response to treatment for aggression to trainers
+    - Response to treatment for aggression to groomers
+    - Response to treatment for aggression to animals other than dogs in the home
+  type: LIKERT
+  columns:
+    - aggression_1
+    - aggression_2
+    - aggression_3
+    - aggression_4
+    - aggression_5
+    - aggression_6
+    - aggression_7
+    - aggression_8
+    - aggression_9
+    - aggression_10
+    - aggression_11
+- text: What was the outcome for your dog?
+  type: RADIO
+  columns:
+    - final_word
+  responses:
+    - Kept my dog anyway
+    - Rehomed the dog
+    - Surrendered the dog to a shelter, rescue, or pound
+    - Euthanized the dog (i.e., put to sleep)
+...
