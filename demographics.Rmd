@@ -1,0 +1,69 @@
+---
+title: "Chi-Squared"
+author: "Ian Dinwoodie"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(epitools)
+opts_chunk$set(echo=TRUE)
+set.seed(1)
+```
+
+# Setup Environment
+
+Load the data frame and check the dimensions. We expect 963 rows and 298
+columns.
+
+```{r}
+# Load the data from the csv into a data frame.
+df <- read.csv("data/processed.csv", header=TRUE)
+print(dim(df))
+```
+
+Retain only the necessary fields. Clarify variable name and response where
+necessary.
+
+```{r}
+# Convert logical fields.
+df$male <- ifelse(df$dog_sex==1, TRUE, FALSE)
+df$purebred <- ifelse(df$purebred==1, TRUE, FALSE)
+df$dog_spayed <- ifelse(df$dog_spayed==1, TRUE, FALSE)
+
+# Convert factor fields.
+df$purebred_breed <- as.factor(df$purebred_breed)
+df$acquisition_source <- as.factor(df$acquisition_source)
+df$owner_id <- as.factor(df$owner_id)
+
+# To correct the "dog_spayed" column we convert "I don't know" responses to NA.
+df$dog_spayed[df$dog_spayed>1] <- NA
+df.orig <- df
+
+# Retain only the necessary fields.
+keep <- c(
+  'record_id',
+  'male',
+  'purebred',
+  'purebred_breed',
+  'dog_spayed',
+  'acquisition_source',
+  'dog_age_acq_months',
+  'dog_age_today_months',
+  'dog_sex_month',
+  'dog_weight',
+  'owner_id'
+)
+df <- df[keep]
+summary(df)
+```
+
+Get the number of participating owners.
+
+```{r}
+# The number of owners equals the number of unique owner IDs.
+length(unique(df$owner_id))
+```
+
+
