@@ -1,0 +1,399 @@
+---
+title: "Types of Professionals"
+author: "Ian Dinwoodie"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(epitools)
+opts_chunk$set(echo=TRUE)
+set.seed(1)
+```
+
+# Analysis for Types of Professionals
+
+## Preparing the Data Frame
+
+Load the data frame and check the dimensions. We expect the data frame to have
+963 rows and 298 columns. We then drop all the columns that are not necessary
+for calculations pertaining to the types of professionals sought.
+
+```{r}
+# Load the data from the csv into a data frame.
+df <- read.csv("data/processed.csv", header=TRUE)
+print(dim(df))
+
+# Retaining only the necessary columns.
+attribs <- c(
+  'prof_help',
+  'prof_type_*',
+  'prof_discover',
+  'health_iss_*',
+  'trainer_*',
+  'consultant_*',
+  'best_prof*',
+  'alt_med_type_4'
+)
+outcomes <- c('agg_\\.*')
+keep.patterns <- paste(c(attribs, outcomes), collapse='|')
+df <- df[, grep(keep.patterns, names(df))]
+
+# Display the remaining columns.
+str(df)
+```
+
+With a more managable sized data frame we can rename the columns.
+
+```{r}
+# Rename the columns for accessibility.
+names <- c(
+  'prof.help',
+  'vet',
+  'trainer',
+  'consult',
+  'health.issue',
+  'thyroid.problem',
+  'seizures',
+  'pain',
+  'tumor',
+  'cognitive.dysfunction',
+  'other.health.issue',
+  'trainer.multi',
+  'trainer.cnt',
+  'trainer.has.cred',
+  'trainer.cpdt',
+  'trainer.cred.other.desc',
+  'consult.multi',
+  'consult.cnt',
+  'consult.has.cred',
+  'consult.cbcc',
+  'consult.cdbc',
+  'consult.caab',
+  'consult.dacvb',
+  'consult.other',
+  'consult.cred.other.desc',
+  'prof.best',
+  'chiro',
+  'agg.conf',
+  'agg.idh',
+  'agg.ext.ppl',
+  'agg.ext.dog',
+  'agg.pred',
+  'agg.overall'
+)
+colnames(df) <- names
+
+# Peek at the structure of the data.
+str(df)
+```
+
+Now let's convert the columns into appropriate types.
+
+```{r}
+# Convert columns to appropriate type.
+df$prof.help <- ifelse(df$prof.help == 1, TRUE, FALSE)
+df$vet <- ifelse(df$vet == 1, TRUE, FALSE)
+df$trainer <- ifelse(df$trainer == 1, TRUE, FALSE)
+df$consult <- ifelse(df$consult == 1, TRUE, FALSE)
+df$health.issue <- ifelse(df$health.issue == 1, TRUE, FALSE)
+df$thyroid.problem <- ifelse(df$thyroid.problem == 1, TRUE, FALSE)
+df$seizures <- ifelse(df$seizures == 1, TRUE, FALSE)
+df$pain <- ifelse(df$pain == 1, TRUE, FALSE)
+df$tumor <- ifelse(df$tumor == 1, TRUE, FALSE)
+df$cognitive.dysfunction <- ifelse(df$cognitive.dysfunction == 1, TRUE, FALSE)
+df$other.health.issue <- ifelse(df$other.health.issue == 1, TRUE, FALSE)
+df$trainer.multi <- ifelse(df$trainer.multi == 1, TRUE, FALSE)
+#df$trainer.cnt <- as.factor(df$trainer.cnt)
+df$trainer.has.cred <- ifelse(df$trainer.has.cred == 1, TRUE, FALSE)
+df$trainer.cpdt <- ifelse(df$trainer.cpdt == 1, TRUE, FALSE)
+#df$trainer.cred.other.desc <- ifelse(df$trainer.cred.other)
+df$consult.multi <- ifelse(df$consult.multi == 1, TRUE, FALSE)
+#df$consult.cnt <- as.factor(df$consult.cnt)
+df$consult.has.cred <- ifelse(df$consult.has.cred == 1, TRUE, FALSE)
+df$consult.cbcc <- ifelse(df$consult.cbcc == 1, TRUE, FALSE)
+df$consult.cdbc <- ifelse(df$consult.cdbc == 1, TRUE, FALSE)
+df$consult.caab <- ifelse(df$consult.caab == 1, TRUE, FALSE)
+df$consult.dacvb <- ifelse(df$consult.dacvb == 1, TRUE, FALSE)
+df$consult.other <- ifelse(df$consult.other == 1, TRUE, FALSE)
+#df$consult.cred.other.desc <- ifelse
+df$prof.best <- as.factor(df$prof.best)
+#df$agg.conf
+#df$agg.idh
+#df$agg.ext.ppl
+#df$agg.ext.dog
+#df$agg.pred
+#df$agg.overall
+```
+
+## Overview
+
+Let's take a look at a summary of the data frame.
+
+```{r}
+# Summarize the data frame.
+summary(df)
+```
+
+Let's look specifically at the professionals that participants marked as best
+(i.e., most helpful) since it isn't fully expanded in the summary above.
+
+```{r}
+summary(df$best.prof)
+```
+
+Clearly define the outcome variables for this analysis.
+
+```{r}
+outcomes <- c('agg.overall', 'agg.conf', 'agg.idh', 'agg.ext.ppl',
+              'agg.ext.dog', 'agg.pred')
+```
+
+We also establish some functions that will be used throughout the course of this
+analysis.
+
+```{r}
+iters <- 20
+
+get_outcome_df <- function(df, outcomes, attribs, response.min=5)
+{
+  # Reduce the data frame.
+  cols <- c(outcome, attribs)
+  df.out <- df[cols]
+  
+  # Format the outcome as a factor with order.
+  df.out[,outcome] <- round(df.out[,outcome], 0)
+  df.out[,outcome] <- factor(
+    df.out[,outcome], levels=c("1","2","3","4","5","6","7"), ordered=TRUE)
+
+  # Drop rows with null values for the outcome.
+  df.out <- df.out[!is.na(df.out[,outcome]), ]
+  
+  # Each attribute must meet the minimum response cutoff.
+  drop.idxs <- NULL
+  attr.idxs <- grep(attribs, names(df.out))
+  response.max <- nrow(df.out)
+  for (idx in attr.idxs) {
+    for (c in table(df.out[, idx])) {
+      if (c<=(response.min-1) || c>=response.max) {
+        drop.idxs <- c(drop.idxs, idx)
+        break
+      }
+    }
+  }
+  
+  # Drop the columns that did not meet the minimum response cutoff.
+  if (length(drop.idxs) > 0) {
+    df.out <- df.out[, -drop.idxs]
+  }
+  
+  return(df.out)
+}
+
+get_chi_square_results <- function(df, outcome, attribs)
+{
+  cat(paste("\n", outcome, "\n"))
+  df1 <- get_outcome_df(df, outcome, attribs, response.min=5)
+  
+  # Format the outcome as a binary response.
+  outcome.binary <- paste0(outcome, ".improve")
+  df1[, outcome.binary] <- ifelse(df1[, outcome] > 4, 1, 0)
+  
+  # Get p-values and odds ratios.
+  preds <- NULL
+  p.values <- NULL
+  odds.ratios <- NULL 
+  ci.low <- NULL
+  ci.high <- NULL
+  for (col in names(df1)) {
+    if (col == outcome || col == outcome.binary) next
+    set.seed(1)
+    
+    tbl <- table(df1[, col], df1[, outcome.binary], dnn=c(col, outcome.binary))
+    chisq <- chisq.test(tbl, simulate.p.value=TRUE)
+    p <- chisq$p.value
+    
+    preds <- c(preds, col)
+    p.values <- c(p.values, p)
+    or <- oddsratio.wald(df1[, col], df1[, outcome.binary])
+    odds.ratios <- c(odds.ratios, or$measure[2,1])
+  
+    b.ors <- NULL
+    for (i in 1:iters) {
+      df.tmp <- df1[sample(nrow(df1), nrow(df), replace=T), ]
+      or <- oddsratio.wald(df.tmp[, col], df.tmp[, outcome.binary])
+      b.ors <- c(b.ors, or$measure[2,1])
+    }
+    b.ors <- b.ors[is.finite(b.ors)]
+    b.ors <- b.ors[b.ors != 0]
+    
+    ci <- quantile(b.ors, c(0.025, 0.975), na.rm=TRUE)
+    ci.low <- c(ci.low, ci[1])
+    ci.high <- c(ci.high, ci[2])
+  }
+
+  # Form a result data frame.
+  df.out <- data.frame(pred=preds,
+                       p=round(p.values, 5),
+                       or=round(odds.ratios, 4),
+                       ci.low=as.vector(round(ci.low, 4)),
+                       ci.high=as.vector(round(ci.high, 4)))
+  
+  df.out$sig <- ''
+  #df.out[df.out$p <= .1, 'sig'] <- '.'
+  df.out[df.out$p <= .05, 'sig'] <- '*'
+  df.out[df.out$p <= .01, 'sig'] <- '**'
+  df.out[df.out$p <= .001, 'sig'] <- '***'
+  
+  for (i in 1:nrow(df.out)) {
+    if (is.na(df.out[i, 'ci.low']) | is.na(df.out[i, 'ci.high'])) next
+    if ((df.out[i, 'ci.low'] < 1) & (df.out[i, 'ci.high'] > 1)) {
+      df.out[i, 'sig'] <- 'x'
+    }
+  }
+
+  df.out$dir <- ''
+  df.out[df.out$or < 1, 'dir'] <- '-'
+  df.out[df.out$or > 1, 'dir'] <- '+'
+  
+  return(df.out)
+}
+```
+
+## Trainers
+
+First, we look at the whole sample to see if seeking out a trainer had any
+correlation with a positive response to treatment for aggression (PRTA).
+
+```{r}
+# Specify the predictor columns.
+attribs <- c('trainer')
+
+# Run chi square analysis.
+for (outcome in outcomes) {
+  df.out = get_chi_square_results(df, outcome, attribs)
+  print(df.out)
+}
+```
+
+Now we separate out the group of dogs that were brought to trainers and look for
+any correlations between a trainer having credentials and a PRTA.
+
+```{r}
+# Isolate the group of dogs that saw trainers. We expect to have 384 rows in the
+# resulting data frame.
+df.tmp <- subset(df, trainer == TRUE)
+dim(df.tmp)
+
+# Specify the predictor columns.
+attribs <- c('trainer.has.cred')
+
+# Run chi square analysis.
+for (outcome in outcomes) {
+  df.out = get_chi_square_results(df, outcome, attribs)
+  print(df.out)
+}
+```
+
+Next, we separate out the trainers with credentials and look for any
+correlations between specific trainer credentials and a PRTA.
+
+```{r}
+# Isolate the group of dogs that saw trainers. We expect to have 274 rows in the
+# resulting data frame.
+df.tmp <- subset(df.tmp, trainer.has.cred == TRUE)
+dim(df.tmp)
+
+# Specify the predictor columns.
+attribs <- c('trainer.cpdt')
+
+# Run chi square analysis.
+for (outcome in outcomes) {
+  df.out = get_chi_square_results(df, outcome, attribs)
+  print(df.out)
+}
+```
+
+## Behavior Consultants
+
+We look at the whole sample to see if seeking out a behavior consultant had any
+correlation with a PRTA.
+
+```{r}
+# Specify the predictor columns.
+attribs <- c('consult')
+
+# Run chi square analysis.
+for (outcome in outcomes) {
+  df.out = get_chi_square_results(df, outcome, attribs)
+  print(df.out)
+}
+```
+
+Now we separate out the group of dogs that were brought to consultants and look
+for any correlations between a consultant having credentials and a PRTA.
+
+```{r, warning=F}
+# Isolate the group of dogs that saw consultants. We expect to have 276 rows in
+# the resulting data frame.
+df.tmp <- subset(df, consult == TRUE)
+dim(df.tmp)
+
+# Specify the predictor columns.
+attribs <- c('consult.has.cred')
+
+# Run chi square analysis.
+for (outcome in outcomes) {
+  df.out = get_chi_square_results(df, outcome, attribs)
+  print(df.out)
+}
+```
+
+Next, we separate out the consultants with credentials and look for any
+correlations between specific consultant credentials and a PRTA.
+
+```{r, warning=F}
+# Isolate the group of dogs that saw consultants. We expect to have 196 rows in
+# the resulting data frame.
+df.tmp <- subset(df.tmp, consult.has.cred == TRUE)
+dim(df.tmp)
+
+# Specify the predictor columns.
+attribs <- c('consult.cbcc', 'consult.cdbc', 'consult.caab', 'consult.dacvb')
+
+# Run chi square analysis.
+for (outcome in outcomes) {
+  df.out = get_chi_square_results(df, outcome, attribs)
+  print(df.out)
+}
+```
+
+## Veterinarians
+
+We look at the whole sample to see if seeking out a veterinarian had any
+correlation with a PRTA.
+
+```{r}
+# Specify the predictor columns.
+attribs <- c('vet')
+
+# Run chi square analysis.
+for (outcome in outcomes) {
+  df.out = get_chi_square_results(df, outcome, attribs)
+  print(df.out)
+}
+```
+
+We would also like to see how many dogs with pain exhibit fear aggression toward
+dogs.
+
+```{r}
+# Pain & FAD
+df.tmp <- subset(df, (pain == TRUE) & (agg.ext.dog > 0))
+print(summary(df.tmp))
+
+# Pain & chiro
+df.tmp <- subset(df, (pain == TRUE) & (chiro > 0))
+print(summary(df.tmp))
+```
