@@ -143,8 +143,8 @@ apply_binary_response_criteria <- function(df)
   idx.binaries <- grep(pattern, names(df))
   drops <- NULL
   for (idx in idx.binaries) {
-    # We record any column with less than 10 affirmative (1) responses.
-    if (sum(df[,idx]) < 10) {
+    # We record any column with less than 5 affirmative (1) responses.
+    if (sum(df[,idx]) < 5) {
       drops <- c(drops, idx)
     }
   }
@@ -167,7 +167,6 @@ excludes <- vector()
 df.agg <- get_agg_data_frame(df.mod, predictors, outcome, excludes)
 df.agg <- apply_binary_response_criteria(df.agg)
 dim(df.agg)
-#summary(df.agg)
 
 # Fit a logistic regression.
 f <- as.formula(paste0(outcome, "~", "."))
@@ -202,14 +201,12 @@ outcome <- "agg_conf"
 df.agg <- get_agg_data_frame(df.mod, predictors, outcome, excludes)
 df.agg <- apply_binary_response_criteria(df.agg)
 dim(df.agg)
-#summary(df.agg)
 
 # Fit a logistic regression.
 f <- as.formula(paste0(outcome, "~", "."))
 coef <- rep(0, length(df.agg)-1)
 zeta <- seq(from=0, to=1, length.out=6)
 start <- c(coef, zeta)
-str(df.agg)
 m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
 
@@ -217,16 +214,6 @@ summary(m)
 coeftest(m) # p-values
 ci <- confint.default(m)
 exp(cbind(OR = coef(m), ci)) # OR and CI
-```
-
-```{r}
-# Fit a logistic regression.
-#m.step<- stepAIC(m, trace=FALSE)
-
-# Generate CIs and p-values.
-#coeftest(m.step) # p-values
-#ci <- confint.default(m.step)
-#exp(cbind(OR = coef(m.step), ci)) # OR and CI
 ```
 
 # I.D.H. Aggression
@@ -259,7 +246,6 @@ outcome <- "agg_ext_ppl"
 df.agg <- get_agg_data_frame(df.mod, predictors, outcome, excludes)
 df.agg <- apply_binary_response_criteria(df.agg)
 dim(df.agg)
-#summary(df.agg)
 
 # Fit a logistic regression.
 f <- as.formula(paste0(outcome, "~", "."))
@@ -283,7 +269,6 @@ outcome <- "agg_ext_dog"
 df.agg <- get_agg_data_frame(df.mod, predictors, outcome, excludes)
 df.agg <- apply_binary_response_criteria(df.agg)
 dim(df.agg)
-#summary(df.agg)
 
 # Fit a logistic regression.
 f <- as.formula(paste0(outcome, "~", "."))
@@ -307,7 +292,6 @@ outcome <- "agg_pred"
 df.agg <- get_agg_data_frame(df.mod, predictors, outcome, excludes)
 df.agg <- apply_binary_response_criteria(df.agg)
 dim(df.agg)
-#summary(df.agg)
 
 # Fit a logistic regression.
 f <- as.formula(paste0(outcome, "~", "."))
