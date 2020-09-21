@@ -88,7 +88,7 @@ df.l1 <- subset(df.mod, bite_severity==1)
 df.l2 <- subset(df.mod, bite_severity==2)
 df.l3 <- subset(df.mod, bite_severity==3)
 
-df.mod <- df.l1
+df.mod <- df.l3
 ```
 
 Retain only needed columns.
@@ -225,7 +225,7 @@ summary(m)
 # Generate p-values and bootstrap CIs.
 coeftest(m) # p-values
 odds.ratio <- exp(coef(m))
-iters <- 10
+iters <- 500
 b.ors <- matrix(, nrow=length(odds.ratio), ncol=iters)
 for (i in 1:iters) {
   df.tmp <- df.agg[sample(nrow(df.agg), nrow(df.agg), replace=T), ]
