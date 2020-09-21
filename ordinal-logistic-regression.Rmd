@@ -1,7 +1,7 @@
 ---
 title: "Oridinal Logistic Regression"
 author: "Ian Dinwoodie"
-date: "4/7/2020"
+date: "`r Sys.Date()`"
 output: html_document
 ---
 
@@ -30,12 +30,10 @@ Address columns that need corrections.
 ```{r}
 # Convert "dog_sex" into "male" columns.
 df.mod <- df.orig
-#df.mod$male <- ifelse(df.mod$dog_sex==1, 1, 0)
+df.mod$male <- ifelse(df.mod$dog_sex==1, 1, 0)
 
-# To correct the "dog_spayed" column we convert "idk" responses to NA.
-#summary(df.mod$dog_spayed)
-#df.mod$dog_spayed[df.mod$dog_spayed>1] <- NA
-#summary(df.mod$dog_spayed)
+# To correct the "dog_spayed" column we convert "I don't know" responses to NA.
+df.mod$dog_spayed[df.mod$dog_spayed>1] <- NA
 
 # Create dummy variables for the levels 1-4 of "behavior_prog".
 # We ignore levels 5 and 6 because they are irrelevant to the question.
@@ -51,6 +49,23 @@ df.mod$behavior_prog_3 <- as.integer(df.mod$behavior_prog_3)
 df.mod$behavior_prog_4 <- ifelse(df.mod$behavior_prog==4, 1, 0)
 df.mod$behavior_prog_4[is.na(df.mod$behavior_prog_4)] <- 0
 df.mod$behavior_prog_4 <- as.integer(df.mod$behavior_prog_4)
+
+# Add a column indicating if the dog was found to have pain.
+df.mod$pain <- ifelse(df.mod$health_iss_3==1, 1, 0)
+
+# Add a column indicating if the dog was found to have fear/anxiety.
+df.mod$fear_anxiety <- ifelse(df.mod$q02_main_2==1, 1, 0)
+
+# Add a column indicating if the dog was found to have compulsion.
+df.mod$compulsion <- ifelse(df.mod$q02_main_3==1, 1, 0)
+
+# Convert "acquisition_source" into "rescue" column.
+df.mod$rescue <- ifelse(
+  (df.mod$acquisition_source==1 | df.mod$acquisition_source==4), 1, 0)
+
+# Drop clicker/whistle from equipment since it is present in the behavior
+# techniques.
+df.mod <- subset(df.mod, select=-equipment_11)
 ```
 
 Retain only needed columns.
@@ -58,15 +73,16 @@ Retain only needed columns.
 ```{r}
 # Retain only the columns to be used for analysis.
 predictors <- c(
-#  '^male$',
-#  '^dog_spayed$',
+  '^male$',
   '^prof_type_\\d$',
   '^training_methods_\\d$',
   '^equipment_\\d+$',
   '^med_list_\\d+$',
   '^alt_med_type_\\d+$',
   '^behavior_prog_\\d+$',
-  '^behavior_tech_used_\\d+$'
+  '^behavior_tech_used_\\d+$',
+  '^pain$',
+  '^fear_anxiety$'
 )
 outcomes <- c(
   "^agg_\\S+$"
@@ -91,7 +107,7 @@ pattern <- paste(binaries, collapse='|')
 idx.binaries <- grep(pattern, names(df.mod))
 drops <- NULL
 for (idx in idx.binaries) {
-  # We record any column with less than 10 affirmative (1) responses.
+  # We record any column with less than 5 affirmative (1) responses.
   if (sum(df.mod[,idx]) < 10) {
     drops <- c(drops, idx)
   }
@@ -144,7 +160,7 @@ apply_binary_response_criteria <- function(df)
   drops <- NULL
   for (idx in idx.binaries) {
     # We record any column with less than 5 affirmative (1) responses.
-    if (sum(df[,idx]) < 5) {
+    if (sum(df[,idx]) < 10) {
       drops <- c(drops, idx)
     }
   }
@@ -179,20 +195,6 @@ ci <- confint.default(m)
 exp(cbind(OR = coef(m), ci)) # OR and CI
 ```
 
-Attempt to find a better fit.
-
-```{r}
-# Fit a logistic regression.
-#f <- as.formula(paste0(outcome, "~", "."))
-#m <- polr(f, data=df.agg, Hess=TRUE)
-##m.step<- stepAIC(m, trace=FALSE)
-
-# Generate CIs and p-values.
-#coeftest(m.step) # p-values
-#ci <- confint.default(m.step)
-#exp(cbind(OR = coef(m.step), ci)) # OR and CI
-```
-
 # Conflict Aggression
 
 ```{r}
@@ -224,11 +226,13 @@ outcome <- "agg_idh"
 df.agg <- get_agg_data_frame(df.mod, predictors, outcome, excludes)
 df.agg <- apply_binary_response_criteria(df.agg)
 dim(df.agg)
-#summary(df.agg)
 
 # Fit a logistic regression.
 f <- as.formula(paste0(outcome, "~", "."))
-m <- polr(f, data=df.agg, Hess=TRUE)
+coef <- rep(0, length(df.agg)-1)
+zeta <- seq(from=0, to=1, length.out=6)
+start <- c(coef, zeta)
+m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
 
 # Generate CIs and p-values.
@@ -271,9 +275,10 @@ df.agg <- apply_binary_response_criteria(df.agg)
 dim(df.agg)
 
 # Fit a logistic regression.
-f <- as.formula(paste0(outcome, "~", "."))
+f <- as.formula(paste0(outcome, "~", ". + alt_med_type_4*pain"))
+print(f)
 coef <- rep(0, length(df.agg)-1)
-zeta <- seq(from=0, to=1, length.out=6)
+zeta <- seq(from=0, to=1, length.out=7)
 start <- c(coef, zeta)
 m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
