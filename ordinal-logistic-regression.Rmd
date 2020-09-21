@@ -59,6 +59,17 @@ df.mod$fear_anxiety <- ifelse(df.mod$q02_main_2==1, 1, 0)
 # Drop clicker/whistle from equipment since it is present in the behavior
 # techniques.
 df.mod <- subset(df.mod, select=-equipment_11)
+
+# Correct training method entries.
+# We consider dogs trained with any form of punishment to be excluded from a
+# reward-only training style. We consider compulsion a form of punishment.
+df.mod$punish <- ifelse(
+    ((df.mod$training_methods_2==1) | (df.mod$training_methods_3==1)
+     | (df.mod$training_methods_3==1)), 1, 0)
+df.mod$reward <- ifelse(df.mod$punish==1, 0, df.mod$training_methods_1)
+df.mod <- subset(df.mod,
+             select=-c(training_methods_1, training_methods_2,
+                       training_methods_3,training_methods_4))
 ```
 
 Create dataframes for each severity level.
@@ -94,7 +105,9 @@ predictors <- c(
   '^behavior_prog_\\d+$',
   '^behavior_tech_used_\\d+$',
   '^pain$',
-  '^fear_anxiety$'
+  '^fear_anxiety$',
+  '^punish$',
+  '^reward$'
   #'^bite_severity$'
 )
 outcomes <- c(
@@ -167,7 +180,9 @@ apply_binary_response_criteria <- function(df)
     '^alt_med_type_\\d+$',
     '^behavior_tech_used_\\d+$',
     '^pain$',
-    '^fear_anxiety$'
+    '^fear_anxiety$',
+    '^punish$',
+    '^reward$'
   )
   
   pattern <- paste(binaries, collapse='|')
@@ -207,10 +222,28 @@ start <- c(coef, zeta)
 m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
 
-# Generate CIs and p-values.
+# Generate p-values and bootstrap CIs.
 coeftest(m) # p-values
-ci <- confint.default(m)
-exp(cbind(OR = coef(m), ci)) # OR and CI
+odds.ratio <- exp(coef(m))
+iters <- 10
+b.ors <- matrix(, nrow=length(odds.ratio), ncol=iters)
+for (i in 1:iters) {
+  df.tmp <- df.agg[sample(nrow(df.agg), nrow(df.agg), replace=T), ]
+  m <- polr(f, data=df.tmp, Hess=TRUE, start=start)
+  b.ors[,i] <- exp(coef(m))
+}
+ci <- t(apply(b.ors, 1, quantile, probs=c(0.025, 0.975), na.rm=TRUE))
+ci.low <- ci[,1]
+ci.high <- ci[,2]
+df.tmp <- data.frame(odds.ratio, ci.low, ci.high)
+df.tmp$sig <- ''
+for (i in 1:nrow(df.tmp)) {
+  if (is.na(df.tmp[i, 'ci.low']) | is.na(df.tmp[i, 'ci.high'])) next
+  if ((df.tmp[i, 'ci.low'] < 1) & (df.tmp[i, 'ci.high'] > 1)) {
+    df.tmp[i, 'sig'] <- 'x'
+  }
+}
+print(df.tmp)
 ```
 
 # Conflict Aggression
@@ -230,10 +263,27 @@ start <- c(coef, zeta)
 m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
 
-# Generate CIs and p-values.
+# Generate p-values and bootstrap CIs.
 coeftest(m) # p-values
-ci <- confint.default(m)
-exp(cbind(OR = coef(m), ci)) # OR and CI
+odds.ratio <- exp(coef(m))
+b.ors <- matrix(, nrow=length(odds.ratio), ncol=iters)
+for (i in 1:iters) {
+  df.tmp <- df.agg[sample(nrow(df.agg), nrow(df.agg), replace=T), ]
+  m <- polr(f, data=df.tmp, Hess=TRUE, start=start)
+  b.ors[,i] <- exp(coef(m))
+}
+ci <- t(apply(b.ors, 1, quantile, probs=c(0.025, 0.975), na.rm=TRUE))
+ci.low <- ci[,1]
+ci.high <- ci[,2]
+df.tmp <- data.frame(odds.ratio, ci.low, ci.high)
+df.tmp$sig <- ''
+for (i in 1:nrow(df.tmp)) {
+  if (is.na(df.tmp[i, 'ci.low']) | is.na(df.tmp[i, 'ci.high'])) next
+  if ((df.tmp[i, 'ci.low'] < 1) & (df.tmp[i, 'ci.high'] > 1)) {
+    df.tmp[i, 'sig'] <- 'x'
+  }
+}
+print(df.tmp)
 ```
 
 # I.D.H. Aggression
@@ -253,11 +303,27 @@ start <- c(coef, zeta)
 m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
 
-# Generate CIs and p-values.
+# Generate p-values and bootstrap CIs.
 coeftest(m) # p-values
-ci <- confint(m)
-print(ci)
-exp(cbind(OR = coef(m), ci)) # OR and CI
+odds.ratio <- exp(coef(m))
+b.ors <- matrix(, nrow=length(odds.ratio), ncol=iters)
+for (i in 1:iters) {
+  df.tmp <- df.agg[sample(nrow(df.agg), nrow(df.agg), replace=T), ]
+  m <- polr(f, data=df.tmp, Hess=TRUE, start=start)
+  b.ors[,i] <- exp(coef(m))
+}
+ci <- t(apply(b.ors, 1, quantile, probs=c(0.025, 0.975), na.rm=TRUE))
+ci.low <- ci[,1]
+ci.high <- ci[,2]
+df.tmp <- data.frame(odds.ratio, ci.low, ci.high)
+df.tmp$sig <- ''
+for (i in 1:nrow(df.tmp)) {
+  if (is.na(df.tmp[i, 'ci.low']) | is.na(df.tmp[i, 'ci.high'])) next
+  if ((df.tmp[i, 'ci.low'] < 1) & (df.tmp[i, 'ci.high'] > 1)) {
+    df.tmp[i, 'sig'] <- 'x'
+  }
+}
+print(df.tmp)
 ```
 
 # External Aggression (People)
@@ -277,10 +343,27 @@ start <- c(coef, zeta)
 m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
 
-# Generate CIs and p-values.
+# Generate p-values and bootstrap CIs.
 coeftest(m) # p-values
-ci <- confint.default(m)
-exp(cbind(OR = coef(m), ci)) # OR and CI
+odds.ratio <- exp(coef(m))
+b.ors <- matrix(, nrow=length(odds.ratio), ncol=iters)
+for (i in 1:iters) {
+  df.tmp <- df.agg[sample(nrow(df.agg), nrow(df.agg), replace=T), ]
+  m <- polr(f, data=df.tmp, Hess=TRUE, start=start)
+  b.ors[,i] <- exp(coef(m))
+}
+ci <- t(apply(b.ors, 1, quantile, probs=c(0.025, 0.975), na.rm=TRUE))
+ci.low <- ci[,1]
+ci.high <- ci[,2]
+df.tmp <- data.frame(odds.ratio, ci.low, ci.high)
+df.tmp$sig <- ''
+for (i in 1:nrow(df.tmp)) {
+  if (is.na(df.tmp[i, 'ci.low']) | is.na(df.tmp[i, 'ci.high'])) next
+  if ((df.tmp[i, 'ci.low'] < 1) & (df.tmp[i, 'ci.high'] > 1)) {
+    df.tmp[i, 'sig'] <- 'x'
+  }
+}
+print(df.tmp)
 ```
 
 # External Aggression (Dogs)
@@ -301,10 +384,27 @@ start <- c(coef, zeta)
 m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
 
-# Generate CIs and p-values.
+# Generate p-values and bootstrap CIs.
 coeftest(m) # p-values
-ci <- confint.default(m)
-exp(cbind(OR = coef(m), ci)) # OR and CI
+odds.ratio <- exp(coef(m))
+b.ors <- matrix(, nrow=length(odds.ratio), ncol=iters)
+for (i in 1:iters) {
+  df.tmp <- df.agg[sample(nrow(df.agg), nrow(df.agg), replace=T), ]
+  m <- polr(f, data=df.tmp, Hess=TRUE, start=start)
+  b.ors[,i] <- exp(coef(m))
+}
+ci <- t(apply(b.ors, 1, quantile, probs=c(0.025, 0.975), na.rm=TRUE))
+ci.low <- ci[,1]
+ci.high <- ci[,2]
+df.tmp <- data.frame(odds.ratio, ci.low, ci.high)
+df.tmp$sig <- ''
+for (i in 1:nrow(df.tmp)) {
+  if (is.na(df.tmp[i, 'ci.low']) | is.na(df.tmp[i, 'ci.high'])) next
+  if ((df.tmp[i, 'ci.low'] < 1) & (df.tmp[i, 'ci.high'] > 1)) {
+    df.tmp[i, 'sig'] <- 'x'
+  }
+}
+print(df.tmp)
 ```
 
 # Predatory Aggression
@@ -324,8 +424,25 @@ start <- c(coef, zeta)
 m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
 
-# Generate CIs and p-values.
+# Generate p-values and bootstrap CIs.
 coeftest(m) # p-values
-ci <- confint.default(m)
-exp(cbind(OR = coef(m), ci)) # OR and CI
+odds.ratio <- exp(coef(m))
+b.ors <- matrix(, nrow=length(odds.ratio), ncol=iters)
+for (i in 1:iters) {
+  df.tmp <- df.agg[sample(nrow(df.agg), nrow(df.agg), replace=T), ]
+  m <- polr(f, data=df.tmp, Hess=TRUE, start=start)
+  b.ors[,i] <- exp(coef(m))
+}
+ci <- t(apply(b.ors, 1, quantile, probs=c(0.025, 0.975), na.rm=TRUE))
+ci.low <- ci[,1]
+ci.high <- ci[,2]
+df.tmp <- data.frame(odds.ratio, ci.low, ci.high)
+df.tmp$sig <- ''
+for (i in 1:nrow(df.tmp)) {
+  if (is.na(df.tmp[i, 'ci.low']) | is.na(df.tmp[i, 'ci.high'])) next
+  if ((df.tmp[i, 'ci.low'] < 1) & (df.tmp[i, 'ci.high'] > 1)) {
+    df.tmp[i, 'sig'] <- 'x'
+  }
+}
+print(df.tmp)
 ```
