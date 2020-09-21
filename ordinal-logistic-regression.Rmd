@@ -15,7 +15,7 @@ set.seed(1)
 
 # General Setup
 
-Load the dataframe and check the dimensions. We expect 963 rows and 298 columns.
+Load the dataframe and check the dimensions. We expect 963 rows and 312 columns.
 
 ```{r}
 # Load the data from the csv into a data frame.
@@ -56,16 +56,28 @@ df.mod$pain <- ifelse(df.mod$health_iss_3==1, 1, 0)
 # Add a column indicating if the dog was found to have fear/anxiety.
 df.mod$fear_anxiety <- ifelse(df.mod$q02_main_2==1, 1, 0)
 
-# Add a column indicating if the dog was found to have compulsion.
-df.mod$compulsion <- ifelse(df.mod$q02_main_3==1, 1, 0)
-
-# Convert "acquisition_source" into "rescue" column.
-df.mod$rescue <- ifelse(
-  (df.mod$acquisition_source==1 | df.mod$acquisition_source==4), 1, 0)
-
 # Drop clicker/whistle from equipment since it is present in the behavior
 # techniques.
 df.mod <- subset(df.mod, select=-equipment_11)
+```
+
+Create dataframes for each severity level.
+
+```{r}
+# The severity levels are as follows:
+# L1 = Has not bitten.
+# L2 = Has bitten, but not punctured skin.
+# L3 = Has bitten and punctured skin.
+names(df.mod)[names(df.mod)=='q03_severity'] <- 'bite_severity'
+df.mod$bite_severity <- ifelse(
+  is.na(df.mod$bite_severity), df.mod$q03_form_5, df.mod$bite_severity)
+df.mod$bite_severity <- ifelse(df.mod$bite_severity>2, 3, df.mod$bite_severity)
+df.mod$bite_severity <- ifelse(df.mod$bite_severity<1, 1, df.mod$bite_severity)
+df.l1 <- subset(df.mod, bite_severity==1)
+df.l2 <- subset(df.mod, bite_severity==2)
+df.l3 <- subset(df.mod, bite_severity==3)
+
+df.mod <- df.l1
 ```
 
 Retain only needed columns.
@@ -83,6 +95,7 @@ predictors <- c(
   '^behavior_tech_used_\\d+$',
   '^pain$',
   '^fear_anxiety$'
+  #'^bite_severity$'
 )
 outcomes <- c(
   "^agg_\\S+$"
@@ -152,7 +165,9 @@ apply_binary_response_criteria <- function(df)
     '^equipment_\\d+$',
     '^med_list_\\d+$',
     '^alt_med_type_\\d+$',
-    '^behavior_tech_used_\\d+$'
+    '^behavior_tech_used_\\d+$',
+    '^pain$',
+    '^fear_anxiety$'
   )
   
   pattern <- paste(binaries, collapse='|')
@@ -186,7 +201,10 @@ dim(df.agg)
 
 # Fit a logistic regression.
 f <- as.formula(paste0(outcome, "~", "."))
-m <- polr(f, data=df.agg, Hess=TRUE)
+coef <- rep(0, length(df.agg)-1)
+zeta <- seq(from=0, to=1, length.out=6)
+start <- c(coef, zeta)
+m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
 
 # Generate CIs and p-values.
@@ -275,10 +293,10 @@ df.agg <- apply_binary_response_criteria(df.agg)
 dim(df.agg)
 
 # Fit a logistic regression.
-f <- as.formula(paste0(outcome, "~", ". + alt_med_type_4*pain"))
+f <- as.formula(paste0(outcome, "~", "."))
 print(f)
 coef <- rep(0, length(df.agg)-1)
-zeta <- seq(from=0, to=1, length.out=7)
+zeta <- seq(from=0, to=1, length.out=6)
 start <- c(coef, zeta)
 m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
