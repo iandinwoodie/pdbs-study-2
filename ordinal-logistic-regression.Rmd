@@ -67,8 +67,22 @@ df.mod <- subset(df.mod,
 
 # Drop clicker/whistle from equipment since it is present in the behavior
 # techniques.
-# TODO: Investigate for colinearity.
-#df.mod <- subset(df.mod, select=-equipment_11)
+df.mod <- subset(df.mod, select=-equipment_11)
+
+# Define bite severity levels as follows:
+# L1 = Has not bitten.
+# L2 = Has bitten, but not punctured skin.
+# L3 = Has bitten and punctured skin.
+#names(df.mod)[names(df.mod)=='q03_severity'] <- 'bite_severity'
+#df.mod$bite_severity <- ifelse(
+#    is.na(df.mod$bite_severity), df.mod$q03_form_5, df.mod$bite_severity)
+#df.mod$bite_severity <- ifelse(df.mod$bite_severity>2, 3, df.mod$bite_severity)
+#df.mod$bite_severity <- ifelse(df.mod$bite_severity<1, 1, df.mod$bite_severity)
+#df.mod$bite_severity <- factor(
+#    df.mod$bite_severity, levels=c("1","2","3"), ordered=TRUE)
+
+names(df.mod)[names(df.mod)=='q03_form_5'] <- 'has_bitten'
+df.mod$has_bitten <- as.factor(df.mod$has_bitten)
 ```
 
 Retain only the columns necessary for analysis.
@@ -85,9 +99,8 @@ predictors <- c(
   '^behavior_tech_used_\\d+$',
   '^pain$',
   '^fear_anxiety$',
-  '^punish$',
-  '^reward$'
-  #'^bite_severity$'
+  '^reward$',
+  '^has_bitten$'
 )
 outcomes <- c(
   "^agg_\\S+$"
@@ -108,25 +121,6 @@ for (col in names(df.mod)) {
 }
 
 str(df.mod)
-```
-
-Create dataframes for each severity level.
-
-```{r}
-# The severity levels are as follows:
-# L1 = Has not bitten.
-# L2 = Has bitten, but not punctured skin.
-# L3 = Has bitten and punctured skin.
-#names(df.mod)[names(df.mod)=='q03_severity'] <- 'bite_severity'
-#df.mod$bite_severity <- ifelse(
-#  is.na(df.mod$bite_severity), df.mod$q03_form_5, df.mod$bite_severity)
-#df.mod$bite_severity <- ifelse(df.mod$bite_severity>2, 3, df.mod$bite_severity)
-#df.mod$bite_severity <- ifelse(df.mod$bite_severity<1, 1, df.mod$bite_severity)
-#df.l1 <- subset(df.mod, bite_severity==1)
-#df.l2 <- subset(df.mod, bite_severity==2)
-#df.l3 <- subset(df.mod, bite_severity==3)
-
-#df.mod <- df.l3
 ```
 
 General rule of thumb for logistic regression is that each variable should have
@@ -207,6 +201,9 @@ start <- c(coef, zeta)
 m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
 
+fit2 <- lm(as.numeric(agg_avg) ~ ., data=df.agg)
+print(vif(fit2))
+
 # Generate CIs and p-values.
 coeftest(m) # p-values
 ci <- exp(confint.default(m))
@@ -233,6 +230,9 @@ start <- c(coef, zeta)
 m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
 
+fit2 <- lm(as.numeric(agg_conf) ~ ., data=df.agg)
+print(vif(fit2))
+
 # Generate CIs and p-values.
 coeftest(m) # p-values
 ci <- exp(confint.default(m))
@@ -256,6 +256,9 @@ zeta <- seq(from=0, to=1, length.out=6)
 start <- c(coef, zeta)
 m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
+
+fit2 <- lm(as.numeric(agg_idh) ~ ., data=df.agg)
+print(vif(fit2))
 
 # Generate CIs and p-values.
 coeftest(m) # p-values
@@ -281,14 +284,14 @@ start <- c(coef, zeta)
 m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
 
+fit2 <- lm(as.numeric(agg_ext_ppl) ~ ., data=df.agg)
+print(vif(fit2))
+
 # Generate CIs and p-values.
 coeftest(m) # p-values
 ci <- exp(confint.default(m))
 odds.ratio <- exp(coef(m))
 cbind(odds.ratio, ci) # OR and CI
-
-# Bootstrap CIs.
-print(get_bootstrapped_ci(df.agg, f, start, odds.ratio, iters=iters))
 ```
 
 # External Aggression (Dogs)
@@ -308,6 +311,9 @@ zeta <- seq(from=0, to=1, length.out=6)
 start <- c(coef, zeta)
 m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
+
+fit2 <- lm(as.numeric(agg_ext_dog) ~ ., data=df.agg)
+print(vif(fit2))
 
 # Generate CIs and p-values.
 coeftest(m) # p-values
@@ -332,6 +338,9 @@ zeta <- seq(from=0, to=1, length.out=6)
 start <- c(coef, zeta)
 m <- polr(f, data=df.agg, Hess=TRUE, start=start)
 summary(m)
+
+fit2 <- lm(as.numeric(agg_pred) ~ ., data=df.agg)
+print(vif(fit2))
 
 # Generate CIs and p-values.
 coeftest(m) # p-values
