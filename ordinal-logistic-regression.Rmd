@@ -184,44 +184,20 @@ get_agg_data_frame <- function(df, pred.patterns, outcome, excludes)
   
   return(df.out)
 }
-
-get_bootstrapped_ci <- function(df, f, start, odds.ratio, iters=10)
-{
-  mx.or <- matrix(, nrow=length(odds.ratio), ncol=iters)
-  for (i in 1:iters) {
-    df.tmp <- df[sample(nrow(df), nrow(df), replace=T), ]
-    m <- polr(f, data=df.tmp, Hess=TRUE, start=start)
-    mx.or[, i] <- exp(coef(m))
-  }
-  
-  ci <- t(apply(mx.or, 1, quantile, probs=c(0.025, 0.975), na.rm=TRUE))
-  ci.low <- ci[, 1]
-  ci.high <- ci[, 2]
-  
-  df.results <- data.frame(odds.ratio, ci.low, ci.high)
-  df.results$ci.x <- ""
-  for (i in 1:nrow(df.results)) {
-    if (is.na(df.results[i, "ci.low"]) | is.na(df.results[i, "ci.high"])) next
-    if ((df.results[i, "ci.low"] < 1) & (df.results[i, "ci.high"] > 1)) {
-      df.results[i, "ci.x"] <- "yes"
-    }
-  }
-  
-  return(df.results)
-}
 ```
 
 # Overall Aggression
 
 ```{r}
 set.seed(1)
+iters <- 10
 
 # Generate the desired subset data frame.
 outcome <- "agg_avg"
 excludes <- vector()
 df.agg <- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes))
-dim(df.agg)
+summary(df.agg)
 
 # Fit a logistic regression.
 f <- as.formula(paste0(outcome, "~", "."))
@@ -236,20 +212,18 @@ coeftest(m) # p-values
 ci <- exp(confint.default(m))
 odds.ratio <- exp(coef(m))
 cbind(odds.ratio, ci) # OR and CI
-
-# Generate p-values and bootstrap CIs.
-print(get_bootstrapped_ci(df.agg, f, start, odds.ratio, iters=100))
 ```
 
 # Conflict Aggression
 
 ```{r}
+set.seed(1)
+
 # Generate the desired subset data frame.
 outcome <- "agg_conf"
-df.agg <- get_agg_data_frame(df.mod, predictors, outcome, excludes)
 df.agg <- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes))
-dim(df.agg)
+summary(df.agg)
 
 # Fit a logistic regression.
 f <- as.formula(paste0(outcome, "~", "."))
@@ -264,26 +238,6 @@ coeftest(m) # p-values
 ci <- exp(confint.default(m))
 odds.ratio <- exp(coef(m))
 cbind(odds.ratio, ci) # OR and CI
-
-# Generate p-values and bootstrap CIs.
-mx.or <- matrix(, nrow=length(odds.ratio), ncol=iters)
-for (i in 1:iters) {
-  df.tmp <- df.agg[sample(nrow(df.agg), nrow(df.agg), replace=T), ]
-  m <- polr(f, data=df.tmp, Hess=TRUE, start=start)
-  mx.or[,i] <- exp(coef(m))
-}
-ci <- t(apply(mx.or, 1, quantile, probs=c(0.025, 0.975), na.rm=TRUE))
-ci.low <- ci[,1]
-ci.high <- ci[,2]
-df.results <- data.frame(odds.ratio, ci.low, ci.high)
-df.results$sig <- ''
-for (i in 1:nrow(df.results)) {
-  if (is.na(df.results[i, 'ci.low']) | is.na(df.results[i, 'ci.high'])) next
-  if ((df.results[i, 'ci.low'] < 1) & (df.results[i, 'ci.high'] > 1)) {
-    df.results[i, 'sig'] <- 'x'
-  }
-}
-print(df.results)
 ```
 
 # I.D.H. Aggression
@@ -291,9 +245,9 @@ print(df.results)
 ```{r}
 # Generate the desired subset data frame.
 outcome <- "agg_idh"
-df.agg <- get_agg_data_frame(df.mod, predictors, outcome, excludes)
-df.agg <- apply_binary_response_criteria(df.agg)
-dim(df.agg)
+df.agg <- apply_binary_response_criteria(
+  get_agg_data_frame(df.mod, predictors, outcome, excludes))
+summary(df.agg)
 
 # Fit a logistic regression.
 f <- as.formula(paste0(outcome, "~", "."))
@@ -308,26 +262,6 @@ coeftest(m) # p-values
 ci <- exp(confint.default(m))
 odds.ratio <- exp(coef(m))
 cbind(odds.ratio, ci) # OR and CI
-
-# Generate p-values and bootstrap CIs.
-mx.or <- matrix(, nrow=length(odds.ratio), ncol=iters)
-for (i in 1:iters) {
-  df.tmp <- df.agg[sample(nrow(df.agg), nrow(df.agg), replace=T), ]
-  m <- polr(f, data=df.tmp, Hess=TRUE, start=start)
-  mx.or[,i] <- exp(coef(m))
-}
-ci <- t(apply(mx.or, 1, quantile, probs=c(0.025, 0.975), na.rm=TRUE))
-ci.low <- ci[,1]
-ci.high <- ci[,2]
-df.results <- data.frame(odds.ratio, ci.low, ci.high)
-df.results$sig <- ''
-for (i in 1:nrow(df.results)) {
-  if (is.na(df.results[i, 'ci.low']) | is.na(df.results[i, 'ci.high'])) next
-  if ((df.results[i, 'ci.low'] < 1) & (df.results[i, 'ci.high'] > 1)) {
-    df.results[i, 'sig'] <- 'x'
-  }
-}
-print(df.results)
 ```
 
 # External Aggression (People)
@@ -335,9 +269,9 @@ print(df.results)
 ```{r}
 # Generate the desired subset data frame.
 outcome <- "agg_ext_ppl"
-df.agg <- get_agg_data_frame(df.mod, predictors, outcome, excludes)
-df.agg <- apply_binary_response_criteria(df.agg)
-dim(df.agg)
+df.agg <- apply_binary_response_criteria(
+    get_agg_data_frame(df.mod, predictors, outcome, excludes))
+summary(df.agg)
 
 # Fit a logistic regression.
 f <- as.formula(paste0(outcome, "~", "."))
@@ -353,25 +287,8 @@ ci <- exp(confint.default(m))
 odds.ratio <- exp(coef(m))
 cbind(odds.ratio, ci) # OR and CI
 
-# Generate p-values and bootstrap CIs.
-mx.or <- matrix(, nrow=length(odds.ratio), ncol=iters)
-for (i in 1:iters) {
-  df.tmp <- df.agg[sample(nrow(df.agg), nrow(df.agg), replace=T), ]
-  m <- polr(f, data=df.tmp, Hess=TRUE, start=start)
-  mx.or[,i] <- exp(coef(m))
-}
-ci <- t(apply(mx.or, 1, quantile, probs=c(0.025, 0.975), na.rm=TRUE))
-ci.low <- ci[,1]
-ci.high <- ci[,2]
-df.results <- data.frame(odds.ratio, ci.low, ci.high)
-df.results$sig <- ''
-for (i in 1:nrow(df.results)) {
-  if (is.na(df.results[i, 'ci.low']) | is.na(df.results[i, 'ci.high'])) next
-  if ((df.results[i, 'ci.low'] < 1) & (df.results[i, 'ci.high'] > 1)) {
-    df.results[i, 'sig'] <- 'x'
-  }
-}
-print(df.results)
+# Bootstrap CIs.
+print(get_bootstrapped_ci(df.agg, f, start, odds.ratio, iters=iters))
 ```
 
 # External Aggression (Dogs)
@@ -379,9 +296,9 @@ print(df.results)
 ```{r}
 # Generate the desired subset data frame.
 outcome <- "agg_ext_dog"
-df.agg <- get_agg_data_frame(df.mod, predictors, outcome, excludes)
-df.agg <- apply_binary_response_criteria(df.agg)
-dim(df.agg)
+df.agg <- apply_binary_response_criteria(
+    get_agg_data_frame(df.mod, predictors, outcome, excludes))
+summary(df.agg)
 
 # Fit a logistic regression.
 f <- as.formula(paste0(outcome, "~", "."))
@@ -397,26 +314,6 @@ coeftest(m) # p-values
 ci <- exp(confint.default(m))
 odds.ratio <- exp(coef(m))
 cbind(odds.ratio, ci) # OR and CI
-
-# Generate p-values and bootstrap CIs.
-mx.or <- matrix(, nrow=length(odds.ratio), ncol=iters)
-for (i in 1:iters) {
-  df.tmp <- df.agg[sample(nrow(df.agg), nrow(df.agg), replace=T), ]
-  m <- polr(f, data=df.tmp, Hess=TRUE, start=start)
-  mx.or[,i] <- exp(coef(m))
-}
-ci <- t(apply(mx.or, 1, quantile, probs=c(0.025, 0.975), na.rm=TRUE))
-ci.low <- ci[,1]
-ci.high <- ci[,2]
-df.results <- data.frame(odds.ratio, ci.low, ci.high)
-df.results$sig <- ''
-for (i in 1:nrow(df.results)) {
-  if (is.na(df.results[i, 'ci.low']) | is.na(df.results[i, 'ci.high'])) next
-  if ((df.results[i, 'ci.low'] < 1) & (df.results[i, 'ci.high'] > 1)) {
-    df.results[i, 'sig'] <- 'x'
-  }
-}
-print(df.results)
 ```
 
 # Predatory Aggression
@@ -424,9 +321,9 @@ print(df.results)
 ```{r}
 # Generate the desired subset data frame.
 outcome <- "agg_pred"
-df.agg <- get_agg_data_frame(df.mod, predictors, outcome, excludes)
-df.agg <- apply_binary_response_criteria(df.agg)
-dim(df.agg)
+df.agg <- apply_binary_response_criteria(
+    get_agg_data_frame(df.mod, predictors, outcome, excludes))
+summary(df.agg)
 
 # Fit a logistic regression.
 f <- as.formula(paste0(outcome, "~", "."))
@@ -441,24 +338,4 @@ coeftest(m) # p-values
 ci <- exp(confint.default(m))
 odds.ratio <- exp(coef(m))
 cbind(odds.ratio, ci) # OR and CI
-
-# Generate p-values and bootstrap CIs.
-mx.or <- matrix(, nrow=length(odds.ratio), ncol=iters)
-for (i in 1:iters) {
-  df.tmp <- df.agg[sample(nrow(df.agg), nrow(df.agg), replace=T), ]
-  m <- polr(f, data=df.tmp, Hess=TRUE, start=start)
-  mx.or[,i] <- exp(coef(m))
-}
-ci <- t(apply(mx.or, 1, quantile, probs=c(0.025, 0.975), na.rm=TRUE))
-ci.low <- ci[,1]
-ci.high <- ci[,2]
-df.results <- data.frame(odds.ratio, ci.low, ci.high)
-df.results$sig <- ''
-for (i in 1:nrow(df.results)) {
-  if (is.na(df.results[i, 'ci.low']) | is.na(df.results[i, 'ci.high'])) next
-  if ((df.results[i, 'ci.low'] < 1) & (df.results[i, 'ci.high'] > 1)) {
-    df.results[i, 'sig'] <- 'x'
-  }
-}
-print(df.results)
 ```
