@@ -103,7 +103,7 @@ are factors. Update the column types to reflect this.
 
 ```{r}
 for (col in names(df.mod)) {
-  if (grepl('agg_', col, fixed=TRUE)) next
+  if (grepl("agg_", col, fixed=TRUE)) next
   df.mod[, col] <- as.factor(df.mod[, col])
 }
 
@@ -139,14 +139,14 @@ apply_binary_response_criteria <- function(df)
   min_response_cutoff <- 10
   drops <- NULL
   for (col in names(df)) {
-    if (grepl('agg_', col, fixed=TRUE)) next
+    if (grepl("agg_", col, fixed=TRUE)) next
     counts <- count(df[, col])
     if (nrow(counts) < 2) {
       drops <- c(drops, col)
       break
     }
     for (row in 1:nrow(counts)) {
-      if (counts[row, 'freq'] < min_response_cutoff) {
+      if (counts[row, "freq"] < min_response_cutoff) {
         drops <- c(drops, col)
         break
       }
@@ -170,9 +170,9 @@ get_agg_data_frame <- function(df, pred.patterns, outcome, excludes)
   df.out <- df[, idx]
   
   # Format the outcome as a factor with order.
-  df.out[,outcome] <- round(df.out[,outcome], 0)
-  df.out[,outcome] <- factor(df.out[,outcome], levels=c("1","2","3","4","5","6","7"),
-                             ordered=TRUE)
+  df.out[,outcome] <- round(df.out[, outcome], 0)
+  df.out[,outcome] <- factor(
+      df.out[, outcome], levels=c("1","2","3","4","5","6","7"), ordered=TRUE)
   
   if (length(excludes) > 0) {
     # Exclude variables that cause issues for the model.
@@ -180,7 +180,7 @@ get_agg_data_frame <- function(df, pred.patterns, outcome, excludes)
   }
   
   # Drop rows with null values for the outcome.
-  df.out <- df.out[!is.na(df.out[,outcome]), ]
+  df.out <- df.out[!is.na(df.out[, outcome]), ]
   
   return(df.out)
 }
@@ -191,19 +191,19 @@ get_bootstrapped_ci <- function(df, f, start, odds.ratio, iters=10)
   for (i in 1:iters) {
     df.tmp <- df[sample(nrow(df), nrow(df), replace=T), ]
     m <- polr(f, data=df.tmp, Hess=TRUE, start=start)
-    mx.or[,i] <- exp(coef(m))
+    mx.or[, i] <- exp(coef(m))
   }
   
   ci <- t(apply(mx.or, 1, quantile, probs=c(0.025, 0.975), na.rm=TRUE))
-  ci.low <- ci[,1]
-  ci.high <- ci[,2]
+  ci.low <- ci[, 1]
+  ci.high <- ci[, 2]
   
   df.results <- data.frame(odds.ratio, ci.low, ci.high)
-  df.results$ci.x <- ''
+  df.results$ci.x <- ""
   for (i in 1:nrow(df.results)) {
-    if (is.na(df.results[i, 'ci.low']) | is.na(df.results[i, 'ci.high'])) next
-    if ((df.results[i, 'ci.low'] < 1) & (df.results[i, 'ci.high'] > 1)) {
-      df.results[i, 'ci.x'] <- 'yes'
+    if (is.na(df.results[i, "ci.low"]) | is.na(df.results[i, "ci.high"])) next
+    if ((df.results[i, "ci.low"] < 1) & (df.results[i, "ci.high"] > 1)) {
+      df.results[i, "ci.x"] <- "yes"
     }
   }
   
@@ -247,7 +247,8 @@ print(get_bootstrapped_ci(df.agg, f, start, odds.ratio, iters=100))
 # Generate the desired subset data frame.
 outcome <- "agg_conf"
 df.agg <- get_agg_data_frame(df.mod, predictors, outcome, excludes)
-df.agg <- apply_binary_response_criteria(df.agg)
+df.agg <- apply_binary_response_criteria(
+    get_agg_data_frame(df.mod, predictors, outcome, excludes))
 dim(df.agg)
 
 # Fit a logistic regression.
