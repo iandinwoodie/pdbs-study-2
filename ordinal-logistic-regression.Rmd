@@ -83,6 +83,25 @@ df.mod <- subset(df.mod, select=-equipment_11)
 
 names(df.mod)[names(df.mod)=='q03_form_5'] <- 'has_bitten'
 df.mod$has_bitten <- as.factor(df.mod$has_bitten)
+
+df.mod$trainer_cred <- ifelse(df.mod$trainer_cred == 1, 1, 0)
+df.mod[is.na(df.mod$trainer_cred), 'trainer_cred'] <- 0
+names(df.mod)[names(df.mod)=='trainer_cred_type'] <- 'trainer_cpdt'
+df.mod$trainer_cpdt <- ifelse(df.mod$trainer_cpdt == 1, 1, 0)
+df.mod[is.na(df.mod$trainer_cpdt), 'trainer_cpdt'] <- 0
+
+df.mod$consultant_cred <- ifelse(df.mod$consultant_cred == 1, 1, 0)
+df.mod[is.na(df.mod$consultant_cred), 'consultant_cred'] <- 0
+names(df.mod)[names(df.mod)=='consultant_cred_type_1'] <- 'consult_cbcc'
+df.mod$consult_cbcc <- ifelse(df.mod$consult_cbcc == 1, 1, 0)
+names(df.mod)[names(df.mod)=='consultant_cred_type_2'] <- 'consult_cdbc'
+df.mod$consult_cdbc <- ifelse(df.mod$consult_cdbc == 1, 1, 0)
+names(df.mod)[names(df.mod)=='consultant_cred_type_3'] <- 'consult_caab'
+df.mod$consult_caab <- ifelse(df.mod$consult_caab == 1, 1, 0)
+names(df.mod)[names(df.mod)=='consultant_cred_type_4'] <- 'consult_dacvb'
+df.mod$consult_dacvb <- ifelse(df.mod$consult_dacvb == 1, 1, 0)
+
+str(df.mod)
 ```
 
 Retain only the columns necessary for analysis.
@@ -100,7 +119,14 @@ predictors <- c(
   '^pain$',
   '^fear_anxiety$',
   '^reward$',
-  '^has_bitten$'
+  '^has_bitten$',
+  'trainer_cred',
+  'trainer_cpdt',
+  '^consultant_cred$',
+  '^consult_cbcc$',
+  '^consult_cdbc$',
+  '^consult_caab$',
+  '^consult_dacvb$'
 )
 outcomes <- c(
   "^agg_\\S+$"
