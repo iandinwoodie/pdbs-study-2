@@ -75,6 +75,7 @@ names <- c(
   'consult.other',
   'consult.cred.other.desc',
   'prof.best',
+  'prof.best.combo',
   'chiro',
   'agg.conf',
   'agg.idh',
@@ -119,6 +120,7 @@ df$consult.dacvb <- ifelse(df$consult.dacvb == 1, TRUE, FALSE)
 df$consult.other <- ifelse(df$consult.other == 1, TRUE, FALSE)
 #df$consult.cred.other.desc <- ifelse
 df$prof.best <- as.factor(df$prof.best)
+df$prof.best.combo <- as.factor(df$prof.best.combo)
 #df$agg.conf
 #df$agg.idh
 #df$agg.ext.ppl
