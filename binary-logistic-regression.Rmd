@@ -1,0 +1,390 @@
+---
+title: "Binary Logistic Regression"
+author: "Ian Dinwoodie"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(plyr)
+library(broom)
+opts_chunk$set(echo=TRUE)
+```
+
+# Preparing the Data
+
+Load the dataframe and check the dimensions. We expect 963 rows and 301 columns.
+
+```{r}
+# Load the data from the csv into a data frame.
+df.orig <- read.csv("data/processed.csv", header=TRUE)
+
+# Get the original data frame dimensions.
+dim(df.orig)
+```
+
+Some columns need to have their values standardized.
+
+```{r}
+# Convert "dog_sex" into "male" columns.
+df.mod <- df.orig
+df.mod$male <- ifelse(df.mod$dog_sex==1, 1, 0)
+df.mod <- df.mod[!is.na(df.mod$male),]
+
+# Create dummy variables for the levels 1-4 of "behavior_prog".
+# We ignore levels 5 and 6 because they are irrelevant to the question.
+df.mod$behavior_prog_1 <- ifelse(df.mod$behavior_prog==1, 1, 0)
+df.mod$behavior_prog_1[is.na(df.mod$behavior_prog_1)] <- 0
+df.mod$behavior_prog_1 <- as.integer(df.mod$behavior_prog_1)
+df.mod$behavior_prog_2 <- ifelse(df.mod$behavior_prog==2, 1, 0)
+df.mod$behavior_prog_2[is.na(df.mod$behavior_prog_2)] <- 0
+df.mod$behavior_prog_2 <- as.integer(df.mod$behavior_prog_2)
+df.mod$behavior_prog_3 <- ifelse(df.mod$behavior_prog==3, 1, 0)
+df.mod$behavior_prog_3[is.na(df.mod$behavior_prog_3)] <- 0
+df.mod$behavior_prog_3 <- as.integer(df.mod$behavior_prog_3)
+df.mod$behavior_prog_4 <- ifelse(df.mod$behavior_prog==4, 1, 0)
+df.mod$behavior_prog_4[is.na(df.mod$behavior_prog_4)] <- 0
+df.mod$behavior_prog_4 <- as.integer(df.mod$behavior_prog_4)
+
+# Add a column indicating if the dog was found to have pain.
+df.mod$pain <- ifelse(df.mod$health_iss_3==1, 1, 0)
+
+# Add a column indicating if the dog was found to have fear/anxiety.
+df.mod$fear_anxiety <- ifelse(df.mod$q02_main_2==1, 1, 0)
+
+# Correct training method entries.
+# We consider dogs trained with any form of punishment to be excluded from a
+# reward-only training style. We consider compulsion a form of punishment.
+df.mod$punish <- ifelse(
+    ((df.mod$training_methods_2==1) | (df.mod$training_methods_3==1)
+     | (df.mod$training_methods_3==1)), 1, 0)
+df.mod$reward <- ifelse(df.mod$punish==1, 0, df.mod$training_methods_1)
+df.mod <- subset(df.mod,
+             select=-c(training_methods_1, training_methods_2,
+                       training_methods_3,training_methods_4))
+
+# Drop clicker/whistle from equipment since it is present in the behavior
+# techniques.
+df.mod <- subset(df.mod, select=-equipment_11)
+
+names(df.mod)[names(df.mod)=='q03_form_5'] <- 'has_bitten'
+df.mod$has_bitten <- as.factor(df.mod$has_bitten)
+
+df.mod$trainer_cred <- ifelse(df.mod$trainer_cred == 1, 1, 0)
+df.mod[is.na(df.mod$trainer_cred), 'trainer_cred'] <- 0
+names(df.mod)[names(df.mod)=='trainer_cred_type'] <- 'trainer_cpdt'
+df.mod$trainer_cpdt <- ifelse(df.mod$trainer_cpdt == 1, 1, 0)
+df.mod[is.na(df.mod$trainer_cpdt), 'trainer_cpdt'] <- 0
+
+df.mod$consultant_cred <- ifelse(df.mod$consultant_cred == 1, 1, 0)
+df.mod[is.na(df.mod$consultant_cred), 'consultant_cred'] <- 0
+names(df.mod)[names(df.mod)=='consultant_cred_type_1'] <- 'consult_cbcc'
+df.mod$consult_cbcc <- ifelse(df.mod$consult_cbcc == 1, 1, 0)
+names(df.mod)[names(df.mod)=='consultant_cred_type_2'] <- 'consult_cdbc'
+df.mod$consult_cdbc <- ifelse(df.mod$consult_cdbc == 1, 1, 0)
+names(df.mod)[names(df.mod)=='consultant_cred_type_3'] <- 'consult_caab'
+df.mod$consult_caab <- ifelse(df.mod$consult_caab == 1, 1, 0)
+names(df.mod)[names(df.mod)=='consultant_cred_type_4'] <- 'consult_dacvb'
+df.mod$consult_dacvb <- ifelse(df.mod$consult_dacvb == 1, 1, 0)
+
+str(df.mod)
+```
+
+Retain only the columns necessary for analysis.
+
+```{r}
+# Retain only the columns to be used for analysis.
+predictors <- c(
+  '^male$',
+  '^prof_type_\\d$',
+  '^equipment_\\d+$',
+  '^med_list_\\d+$',
+  '^alt_med_type_\\d+$',
+  '^behavior_prog_\\d+$',
+  '^behavior_tech_used_\\d+$',
+  '^pain$',
+  '^fear_anxiety$',
+  '^reward$',
+  '^has_bitten$',
+  'trainer_cred',
+  'trainer_cpdt',
+  '^consultant_cred$',
+  '^consult_cbcc$',
+  '^consult_cdbc$',
+  '^consult_caab$',
+  '^consult_dacvb$'
+)
+outcomes <- c(
+  "^agg_\\S+$"
+)
+pattern <- paste(c(predictors, outcomes), collapse='|')
+idx <- grep(pattern, names(df.mod))
+df.mod <- df.mod[, idx]
+dim(df.mod)
+```
+
+All remaining columns except for the response to treatment for aggression scores
+are factors. Update the column types to reflect this.
+
+```{r}
+for (col in names(df.mod)) {
+  if (grepl("agg_", col, fixed=TRUE)) next
+  df.mod[, col] <- as.factor(df.mod[, col])
+}
+
+str(df.mod)
+```
+
+General rule of thumb for logistic regression is that each variable should have
+at least 10 responses per response option. We apply this rule of thumb below.
+
+```{r}
+# Drop the columns that do not meet the minimum response cutoff.
+apply_binary_response_criteria <- function(df)
+{
+  min_response_cutoff <- 15
+  drops <- NULL
+  for (col in names(df)) {
+    if (grepl("agg_", col, fixed=TRUE)) next
+    counts <- count(df[, col])
+    if (nrow(counts) < 2) {
+      drops <- c(drops, col)
+      break
+    }
+    for (row in 1:nrow(counts)) {
+      if (counts[row, "freq"] < min_response_cutoff) {
+        drops <- c(drops, col)
+        break
+      }
+    }
+  }
+  
+  return(df[, !(names(df) %in% drops)])
+}
+
+df.mod <- apply_binary_response_criteria(df.mod)
+summary(df.mod)
+```
+
+Now we initialize other functions that will be reused throughout the analysis.
+
+```{r}
+get_agg_data_frame <- function(df, pred.patterns, outcome, excludes)
+{
+  pattern <- paste(c(pred.patterns, outcome), collapse='|')
+  idx <- grep(pattern, names(df))
+  df.out <- df[, idx]
+  
+  # Format the outcome as a factor with order.
+  df.out[,outcome] <- round(df.out[, outcome], 0)
+  df.out[,outcome] <- factor(
+      df.out[, outcome], levels=c("1","2","3","4","5","6","7"), ordered=TRUE)
+  
+  if (length(excludes) > 0) {
+    # Exclude variables that cause issues for the model.
+    df.out <- df.out[, !colnames(df.out) %in% excludes]
+  }
+  
+  # Drop rows with null values for the outcome.
+  df.out <- df.out[!is.na(df.out[, outcome]), ]
+  
+  return(df.out)
+}
+```
+
+# Overall Aggression
+
+```{r binomial_model}
+set.seed(1)
+
+# Generate the desired subset data frame.
+outcome <- "agg_avg"
+excludes <- vector()
+df.agg <- apply_binary_response_criteria(
+    get_agg_data_frame(df.mod, predictors, outcome, excludes))
+# Collapse the Likert scale to be dichotomous.
+df.agg$agg_avg <-ifelse(df.agg$agg_avg <= 4, 0, 1)
+summary(df.agg)
+
+f <- as.formula(paste0(outcome, "~", "."))
+m <- glm(f, data=df.agg, family="binomial")
+
+df_out <- as.data.frame(tidy(m, conf.int=TRUE))
+df_out$sig <- ''
+df_out[df_out$p.value <= .05, 'sig'] <- '*'
+df_out[df_out$p.value <= .01, 'sig'] <- '**'
+df_out[df_out$p.value <= .001, 'sig'] <- '***'
+
+for (i in 1:nrow(df_out)) {
+  if (is.na(df_out[i, 'conf.low']) | is.na(df_out[i, 'conf.high'])) next
+  if ((df_out[i, 'conf.low'] < 0) & (df_out[i, 'conf.high'] > 0)) {
+    df_out[i, 'sig'] <- ''
+  }
+}
+
+knitr::kable(df_out)
+```
+
+# Conflict Aggression
+
+```{r}
+set.seed(1)
+
+# Generate the desired subset data frame.
+outcome <- "agg_conf"
+df.agg <- apply_binary_response_criteria(
+    get_agg_data_frame(df.mod, predictors, outcome, excludes))
+# Collapse the Likert scale to be dichotomous.
+df.agg$agg_conf <-ifelse(df.agg$agg_conf <= 4, 0, 1)
+df.agg$agg_conf <- as.factor(df.agg$agg_conf)
+summary(df.agg)
+```
+
+```{r}
+f <- as.formula(paste0(outcome, "~", "."))
+m <- glm(f, data=df.agg, family="binomial")
+
+df_out <- as.data.frame(tidy(m, conf.int=TRUE))
+df_out$sig <- ''
+df_out[df_out$p.value <= .05, 'sig'] <- '*'
+df_out[df_out$p.value <= .01, 'sig'] <- '**'
+df_out[df_out$p.value <= .001, 'sig'] <- '***'
+
+for (i in 1:nrow(df_out)) {
+  if (is.na(df_out[i, 'conf.low']) | is.na(df_out[i, 'conf.high'])) next
+  if ((df_out[i, 'conf.low'] < 0) & (df_out[i, 'conf.high'] > 0)) {
+    df_out[i, 'sig'] <- ''
+  }
+}
+
+knitr::kable(df_out)
+```
+
+# I.D.H. Aggression
+
+```{r}
+set.seed(1)
+
+# Generate the desired subset data frame.
+outcome <- "agg_idh"
+df.agg <- apply_binary_response_criteria(
+  get_agg_data_frame(df.mod, predictors, outcome, excludes))
+# Collapse the Likert scale to be dichotomous.
+df.agg$agg_idh <-ifelse(df.agg$agg_idh <= 4, 0, 1)
+summary(df.agg)
+
+f <- as.formula(paste0(outcome, "~", "."))
+m <- glm(f, data=df.agg, family="binomial")
+
+df_out <- as.data.frame(tidy(m, conf.int=TRUE))
+df_out$sig <- ''
+df_out[df_out$p.value <= .05, 'sig'] <- '*'
+df_out[df_out$p.value <= .01, 'sig'] <- '**'
+df_out[df_out$p.value <= .001, 'sig'] <- '***'
+
+for (i in 1:nrow(df_out)) {
+  if (is.na(df_out[i, 'conf.low']) | is.na(df_out[i, 'conf.high'])) next
+  if ((df_out[i, 'conf.low'] < 0) & (df_out[i, 'conf.high'] > 0)) {
+    df_out[i, 'sig'] <- ''
+  }
+}
+
+knitr::kable(df_out)
+```
+
+# External Aggression (People)
+
+```{r}
+set.seed(1)
+
+# Generate the desired subset data frame.
+outcome <- "agg_ext_ppl"
+df.agg <- apply_binary_response_criteria(
+    get_agg_data_frame(df.mod, predictors, outcome, excludes))
+# Collapse the Likert scale to be dichotomous.
+df.agg$agg_ext_ppl <-ifelse(df.agg$agg_ext_ppl <= 4, 0, 1)
+summary(df.agg)
+
+f <- as.formula(paste0(outcome, "~", "."))
+m <- glm(f, data=df.agg, family="binomial")
+
+df_out <- as.data.frame(tidy(m, conf.int=TRUE))
+df_out$sig <- ''
+df_out[df_out$p.value <= .05, 'sig'] <- '*'
+df_out[df_out$p.value <= .01, 'sig'] <- '**'
+df_out[df_out$p.value <= .001, 'sig'] <- '***'
+
+for (i in 1:nrow(df_out)) {
+  if (is.na(df_out[i, 'conf.low']) | is.na(df_out[i, 'conf.high'])) next
+  if ((df_out[i, 'conf.low'] < 0) & (df_out[i, 'conf.high'] > 0)) {
+    df_out[i, 'sig'] <- ''
+  }
+}
+
+knitr::kable(df_out)
+```
+
+# External Aggression (Dogs)
+
+```{r}
+set.seed(1)
+
+# Generate the desired subset data frame.
+outcome <- "agg_ext_dog"
+df.agg <- apply_binary_response_criteria(
+    get_agg_data_frame(df.mod, predictors, outcome, excludes))
+# Collapse the Likert scale to be dichotomous.
+df.agg$agg_ext_dog <-ifelse(df.agg$agg_ext_dog <= 4, 0, 1)
+summary(df.agg)
+
+f <- as.formula(paste0(outcome, "~", "."))
+m <- glm(f, data=df.agg, family="binomial")
+
+df_out <- as.data.frame(tidy(m, conf.int=TRUE))
+df_out$sig <- ''
+df_out[df_out$p.value <= .05, 'sig'] <- '*'
+df_out[df_out$p.value <= .01, 'sig'] <- '**'
+df_out[df_out$p.value <= .001, 'sig'] <- '***'
+
+for (i in 1:nrow(df_out)) {
+  if (is.na(df_out[i, 'conf.low']) | is.na(df_out[i, 'conf.high'])) next
+  if ((df_out[i, 'conf.low'] < 0) & (df_out[i, 'conf.high'] > 0)) {
+    df_out[i, 'sig'] <- ''
+  }
+}
+
+knitr::kable(df_out)
+```
+
+# Predatory Aggression
+
+```{r}
+set.seed(1)
+
+# Generate the desired subset data frame.
+outcome <- "agg_pred"
+df.agg <- apply_binary_response_criteria(
+    get_agg_data_frame(df.mod, predictors, outcome, excludes))
+# Collapse the Likert scale to be dichotomous.
+df.agg$agg_pred <-ifelse(df.agg$agg_pred <= 4, 0, 1)
+summary(df.agg)
+
+f <- as.formula(paste0(outcome, "~", "."))
+m <- glm(f, data=df.agg, family="binomial")
+
+df_out <- as.data.frame(tidy(m, conf.int=TRUE))
+df_out$sig <- ''
+df_out[df_out$p.value <= .05, 'sig'] <- '*'
+df_out[df_out$p.value <= .01, 'sig'] <- '**'
+df_out[df_out$p.value <= .001, 'sig'] <- '***'
+
+for (i in 1:nrow(df_out)) {
+  if (is.na(df_out[i, 'conf.low']) | is.na(df_out[i, 'conf.high'])) next
+  if ((df_out[i, 'conf.low'] < 0) & (df_out[i, 'conf.high'] > 0)) {
+    df_out[i, 'sig'] <- ''
+  }
+}
+
+knitr::kable(df_out)
+```
