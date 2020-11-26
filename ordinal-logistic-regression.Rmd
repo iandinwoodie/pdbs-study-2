@@ -10,6 +10,11 @@ library(knitr)
 library(MASS)
 library(AER)
 library(plyr)
+#library(nnet)
+#library(rms)
+#library(VGAM)
+library(brant)
+library(ordinal)
 opts_chunk$set(echo=TRUE)
 ```
 
@@ -208,7 +213,7 @@ get_agg_data_frame <- function(df, pred.patterns, outcome, excludes)
 
 # Overall Aggression
 
-```{r}
+```{r polr_model}
 set.seed(1)
 iters <- 10
 
@@ -235,6 +240,49 @@ coeftest(m) # p-values
 ci <- exp(confint.default(m))
 odds.ratio <- exp(coef(m))
 cbind(odds.ratio, ci) # OR and CI
+```
+
+```{r clm_model}
+fm <- ordinal::clm(agg_avg ~ has_bitten + prof_type_3 + prof_type_1 + prof_type_2 + trainer_cred + trainer_cpdt + consultant_cred + consult_cbcc + consult_cdbc + consult_caab + consult_dacvb + equipment_1 + equipment_2 + equipment_3 + equipment_4 + equipment_5 + equipment_9 + equipment_6 + equipment_7 + equipment_10 + equipment_8 + med_list_1 + med_list_7 + med_list_9 + med_list_10 + med_list_11 + med_list_13 + alt_med_type_1 + alt_med_type_2 + alt_med_type_3 + alt_med_type_4 + alt_med_type_6 + alt_med_type_8 + alt_med_type_11 + alt_med_type_12 + alt_med_type_13 + alt_med_type_15 + alt_med_type_16 + alt_med_type_18 + behavior_tech_used_1 + behavior_tech_used_3 + behavior_tech_used_4 + behavior_tech_used_5 + behavior_tech_used_6 + behavior_tech_used_7 + behavior_tech_used_8 + behavior_tech_used_9 + behavior_tech_used_10 + behavior_tech_used_11 + behavior_tech_used_12 + behavior_tech_used_13 + behavior_tech_used_15 + behavior_tech_used_16 + behavior_tech_used_17 + behavior_tech_used_18 + behavior_tech_used_19 + male + behavior_prog_1 + behavior_prog_2 + behavior_prog_3 + behavior_prog_4 + pain + fear_anxiety + reward + behavior_tech_used_2, data=df.agg)
+summary(fm)
+```
+```{r nominal_test, warning=FALSE}
+nominal_test(fm)
+#scale_test(fm)
+```
+
+We see that the test fails for three of the variables. Now let's check what
+happens if we specify those variables as nominal effects.
+
+```{r clm_model_2}
+fm2 <- ordinal::clm(agg_avg ~ has_bitten + prof_type_3 + prof_type_1 + prof_type_2 + trainer_cred + trainer_cpdt + consultant_cred + consult_cbcc + consult_cdbc + consult_caab + consult_dacvb + equipment_1 + equipment_2 + equipment_3 + equipment_4 + equipment_5 + equipment_9 + equipment_6 + equipment_7 + equipment_10 + equipment_8 + med_list_1 + med_list_7 + med_list_9 + med_list_10 + med_list_11 + med_list_13 + alt_med_type_1 + alt_med_type_2 + alt_med_type_3 + alt_med_type_4 + alt_med_type_6 + alt_med_type_8 + alt_med_type_11 + alt_med_type_12 + alt_med_type_13 + alt_med_type_15 + alt_med_type_16 + alt_med_type_18 + behavior_tech_used_1 + behavior_tech_used_3 + behavior_tech_used_4 + behavior_tech_used_5 + behavior_tech_used_6 + behavior_tech_used_7 + behavior_tech_used_8 + behavior_tech_used_9 + behavior_tech_used_10 + behavior_tech_used_11 + behavior_tech_used_12 + behavior_tech_used_13 + behavior_tech_used_15 + behavior_tech_used_16 + behavior_tech_used_17 + behavior_tech_used_18 + behavior_tech_used_19 + male + behavior_prog_1 + behavior_prog_2 + behavior_prog_3 + behavior_prog_4 + pain + fear_anxiety + reward,
+                    nominal = ~ behavior_tech_used_2 + behavior_tech_used_1
+                        + behavior_tech_used_4,
+                    data=df.agg,
+                    threshold = "equidistant")
+summary(fm2)
+```
+```{r nominal_test_2, warning=FALSE}
+nominal_test(fm2)
+#scale_test(fm2)
+```
+
+Now even more variables are failing the parallel line assumption. Let's go back
+to our original model and collapse the 
+
+Let's look at a binomial regression instead.
+
+```{r binomial_model}
+df_agg2 <- df.agg
+df_agg2$agg_avg <- ifelse(df_agg2$agg_avg <= 4, 0, 1)
+
+fm2 <- glm(agg_avg ~ has_bitten + prof_type_3 + prof_type_1 + prof_type_2 + trainer_cred + trainer_cpdt + consultant_cred + consult_cbcc + consult_cdbc + consult_caab + consult_dacvb + equipment_1 + equipment_2 + equipment_3 + equipment_4 + equipment_5 + equipment_9 + equipment_6 + equipment_7 + equipment_10 + equipment_8 + med_list_1 + med_list_7 + med_list_9 + med_list_10 + med_list_11 + med_list_13 + alt_med_type_1 + alt_med_type_2 + alt_med_type_3 + alt_med_type_4 + alt_med_type_6 + alt_med_type_8 + alt_med_type_11 + alt_med_type_12 + alt_med_type_13 + alt_med_type_15 + alt_med_type_16 + alt_med_type_18 + behavior_tech_used_1 + behavior_tech_used_3 + behavior_tech_used_4 + behavior_tech_used_5 + behavior_tech_used_6 + behavior_tech_used_7 + behavior_tech_used_8 + behavior_tech_used_9 + behavior_tech_used_10 + behavior_tech_used_11 + behavior_tech_used_12 + behavior_tech_used_13 + behavior_tech_used_15 + behavior_tech_used_16 + behavior_tech_used_17 + behavior_tech_used_18 + behavior_tech_used_19 + male + behavior_prog_1 + behavior_prog_2 + behavior_prog_3 + behavior_prog_4 + pain + fear_anxiety + reward + behavior_tech_used_2 + behavior_tech_used_1 + behavior_tech_used_4,
+                    data=df_agg2, family="binomial")
+summary(fm2)
+```
+
+```{r binomial_confint}
+confint(fm2)
 ```
 
 # Conflict Aggression
