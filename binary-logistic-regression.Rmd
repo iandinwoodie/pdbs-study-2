@@ -9,6 +9,7 @@ output: html_document
 library(knitr)
 library(plyr)
 library(broom)
+library(AER)
 opts_chunk$set(echo=TRUE)
 ```
 
@@ -195,7 +196,7 @@ get_agg_data_frame <- function(df, pred.patterns, outcome, excludes)
 
 # Overall Aggression
 
-```{r binomial_model}
+```{r overall_model, warning=FALSE}
 set.seed(1)
 
 # Generate the desired subset data frame.
@@ -207,18 +208,33 @@ df.agg <- apply_binary_response_criteria(
 df.agg$agg_avg <-ifelse(df.agg$agg_avg <= 4, 0, 1)
 summary(df.agg)
 
+# Fit model to data.
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df.agg, family="binomial")
-
-df_out <- as.data.frame(tidy(m, conf.int=TRUE))
+#summary(m)
+df_out <- as.data.frame(tidy(m, conf.int=FALSE, exponentiate=FALSE))
 df_out$sig <- ''
 df_out[df_out$p.value <= .05, 'sig'] <- '*'
 df_out[df_out$p.value <= .01, 'sig'] <- '**'
 df_out[df_out$p.value <= .001, 'sig'] <- '***'
 
+# Generate bootstrap CIs.
+odds.ratio <- as.vector(exp(coef(m)))
+iters <- 500
+b.ors <- matrix(, nrow=length(odds.ratio), ncol=iters)
+for (i in 1:iters) {
+  df.tmp <- df.agg[sample(nrow(df.agg), nrow(df.agg), replace=T), ]
+  m <- glm(f, data=df.tmp, family="binomial")
+  b.ors[,i] <- exp(coef(m))
+}
+ci <- t(apply(b.ors, 1, quantile, probs=c(0.025, 0.975), na.rm=TRUE))
+ci.low <- round(ci[,1], 2)
+ci.high <- round(ci[,2], 2)
+
+df_out <- cbind(df_out, odds.ratio, ci.low, ci.high)
 for (i in 1:nrow(df_out)) {
-  if (is.na(df_out[i, 'conf.low']) | is.na(df_out[i, 'conf.high'])) next
-  if ((df_out[i, 'conf.low'] < 0) & (df_out[i, 'conf.high'] > 0)) {
+  if (is.na(df_out[i, 'ci.low']) | is.na(df_out[i, 'ci.high'])) next
+  if ((df_out[i, 'ci.low'] < 1) & (df_out[i, 'ci.high'] > 1)) {
     df_out[i, 'sig'] <- ''
   }
 }
@@ -228,7 +244,7 @@ knitr::kable(df_out)
 
 # Conflict Aggression
 
-```{r}
+```{r conf_model, warning=FALSE}
 set.seed(1)
 
 # Generate the desired subset data frame.
@@ -239,13 +255,12 @@ df.agg <- apply_binary_response_criteria(
 df.agg$agg_conf <-ifelse(df.agg$agg_conf <= 4, 0, 1)
 df.agg$agg_conf <- as.factor(df.agg$agg_conf)
 summary(df.agg)
-```
 
-```{r}
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df.agg, family="binomial")
 
-df_out <- as.data.frame(tidy(m, conf.int=TRUE))
+df_out <- as.data.frame(tidy(m, conf.int=TRUE, exponentiate=TRUE))
+df_out$p.value <- round(p.adjust(df_out$p.value, 'BH'), 3)
 df_out$sig <- ''
 df_out[df_out$p.value <= .05, 'sig'] <- '*'
 df_out[df_out$p.value <= .01, 'sig'] <- '**'
@@ -263,7 +278,7 @@ knitr::kable(df_out)
 
 # I.D.H. Aggression
 
-```{r}
+```{r idh_model, warning=FALSE}
 set.seed(1)
 
 # Generate the desired subset data frame.
@@ -278,6 +293,7 @@ f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df.agg, family="binomial")
 
 df_out <- as.data.frame(tidy(m, conf.int=TRUE))
+df_out$p.value <- round(p.adjust(df_out$p.value, 'BH'), 3)
 df_out$sig <- ''
 df_out[df_out$p.value <= .05, 'sig'] <- '*'
 df_out[df_out$p.value <= .01, 'sig'] <- '**'
@@ -295,7 +311,7 @@ knitr::kable(df_out)
 
 # External Aggression (People)
 
-```{r}
+```{r ext_ppl_model, warning=FALSE}
 set.seed(1)
 
 # Generate the desired subset data frame.
@@ -309,7 +325,8 @@ summary(df.agg)
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df.agg, family="binomial")
 
-df_out <- as.data.frame(tidy(m, conf.int=TRUE))
+df_out <- as.data.frame(tidy(m, conf.int=TRUE, exponentiate=TRUE))
+df_out$p.value <- round(p.adjust(df_out$p.value, 'BH'), 3)
 df_out$sig <- ''
 df_out[df_out$p.value <= .05, 'sig'] <- '*'
 df_out[df_out$p.value <= .01, 'sig'] <- '**'
@@ -327,7 +344,7 @@ knitr::kable(df_out)
 
 # External Aggression (Dogs)
 
-```{r}
+```{r ext_dog_model, warning=FALSE}
 set.seed(1)
 
 # Generate the desired subset data frame.
@@ -341,7 +358,8 @@ summary(df.agg)
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df.agg, family="binomial")
 
-df_out <- as.data.frame(tidy(m, conf.int=TRUE))
+df_out <- as.data.frame(tidy(m, conf.int=TRUE, exponentiate=TRUE))
+df_out$p.value <- round(p.adjust(df_out$p.value, 'BH'), 3)
 df_out$sig <- ''
 df_out[df_out$p.value <= .05, 'sig'] <- '*'
 df_out[df_out$p.value <= .01, 'sig'] <- '**'
@@ -359,7 +377,7 @@ knitr::kable(df_out)
 
 # Predatory Aggression
 
-```{r}
+```{r pred_model, warning=FALSE}
 set.seed(1)
 
 # Generate the desired subset data frame.
@@ -373,7 +391,8 @@ summary(df.agg)
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df.agg, family="binomial")
 
-df_out <- as.data.frame(tidy(m, conf.int=TRUE))
+df_out <- as.data.frame(tidy(m, conf.int=TRUE, exponentiate=TRUE))
+df_out$p.value <- round(p.adjust(df_out$p.value, 'BH'), 3)
 df_out$sig <- ''
 df_out[df_out$p.value <= .05, 'sig'] <- '*'
 df_out[df_out$p.value <= .01, 'sig'] <- '**'
