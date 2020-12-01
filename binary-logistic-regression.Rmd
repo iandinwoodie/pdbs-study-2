@@ -13,7 +13,7 @@ library(AER)
 library(boot)
 opts_chunk$set(echo=TRUE)
 set.seed(1)
-nboot <- 5000
+nboot <- 1000
 ```
 
 # Preparing the Data
@@ -171,6 +171,22 @@ apply_binary_response_criteria <- function(df, min_cutoff=10)
   return(df[, !(names(df) %in% drops)])
 }
 
+apply_min_xtab <- function(df, cutoff=10)
+{
+  drops <- NULL
+  for (col in names(df)) {
+    if (col == outcome) next
+    xtab <- table(df[,col], df[,outcome])
+    if (min(xtab) < cutoff) {
+      drops <- c(drops, col)
+      break
+    }
+  }
+  
+  print(drops)
+  return(df[, !(names(df) %in% drops)])
+}
+
 df.mod <- apply_binary_response_criteria(df.mod)
 summary(df.mod)
 ```
@@ -234,7 +250,7 @@ boot_glm <- function(formula, data, indices)
 
 boot_obj <- boot(data=df_agg, statistic=boot_glm, R=nboot, formula=f,
                  parallel='multicore')
-#print(boot_obj)
+print(boot_obj)
 #plot(boot_obj)
 ```
 
@@ -277,8 +293,11 @@ outcome <- "agg_conf"
 excludes <- vector()
 df_agg <- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes),
-    min_cutoff=25)
+    min_cutoff=20)
 df_agg$agg_conf <- as.factor(ifelse(df_agg$agg_conf <= 4, 0, 1))
+summary(df_agg)
+
+#df_agg <- apply_min_xtab(df_agg)
 summary(df_agg)
 ```
 
@@ -302,7 +321,7 @@ boot_glm <- function(formula, data, indices)
 }
 
 df_agg2 <- rbind(df_agg, df_agg, df_agg)
-boot_obj <- boot(data=df_agg2, statistic=boot_glm, R=nboot, formula=f,
+boot_obj <- boot(data=df_agg2, statistic=boot_glm, R=10000, formula=f,
                  parallel='multicore')
 print(boot_obj)
 #plot(boot_obj)
@@ -336,6 +355,8 @@ for (i in 1:nrow(df_results)) {
 }
 
 knitr::kable(df_results)
+
+confint(m)
 ```
 
 # I.D.H. Aggression
@@ -406,103 +427,216 @@ for (i in 1:nrow(df_results)) {
 }
 
 knitr::kable(df_results)
+
+confint(m)
 ```
 
 # External Aggression (People)
 
-```{r ext_ppl_model, warning=FALSE}
+```{r agg_ext_ppl_df}
+# Generate the desired subset data frame and collapse Likert outcome to be
+# dichotomous.
+outcome <- "agg_ext_ppl"
+excludes <- vector()
+df_agg <- apply_binary_response_criteria(
+    get_agg_data_frame(df.mod, predictors, outcome, excludes),
+    min_cutoff=10)
+df_agg$agg_ext_ppl <- as.factor(ifelse(df_agg$agg_ext_ppl <= 4, 0, 1))
+summary(df_agg)
+```
+
+```{r agg_ext_ppl_glm, warning=FALSE}
+# Fit model to data.
+f <- as.formula(paste0(outcome, "~", "."))
+m <- glm(f, data=df_agg, family="binomial")
+summary(m)
+```
+
+```{r agg_ext_ppl_boot, warning=T}
+# Generate bootstrap CIs.
 set.seed(1)
 
-# Generate the desired subset data frame.
-outcome <- "agg_ext_ppl"
-df.agg <- apply_binary_response_criteria(
-    get_agg_data_frame(df.mod, predictors, outcome, excludes))
-# Collapse the Likert scale to be dichotomous.
-df.agg$agg_ext_ppl <-ifelse(df.agg$agg_ext_ppl <= 4, 0, 1)
-summary(df.agg)
+boot_glm <- function(formula, data, indices)
+{
+  d <- data[indices, ]
+  #print(summary(d))
+  fit <- glm(formula, data=d, family='binomial')
+  return(coef(fit))
+}
 
-f <- as.formula(paste0(outcome, "~", "."))
-m <- glm(f, data=df.agg, family="binomial")
+df_agg2 <- rbind(df_agg, df_agg)
+boot_obj <- boot(data=df_agg2, statistic=boot_glm, R=nboot, formula=f,
+                 parallel='multicore')
+print(boot_obj)
+#plot(boot_obj)
+```
 
-df_out <- as.data.frame(tidy(m, conf.int=TRUE, exponentiate=TRUE))
-#df_out$p.value <- round(p.adjust(df_out$p.value, 'BH'), 3)
-df_out$sig <- ''
-df_out[df_out$p.value <= .05, 'sig'] <- '*'
-df_out[df_out$p.value <= .01, 'sig'] <- '**'
-df_out[df_out$p.value <= .001, 'sig'] <- '***'
+```{r agg_ext_ppl_ci}
+res <- NULL
+for (i in 1:length(boot_obj$t0)) {
+  coef_star <- boot_obj$t[,i]
+  coef_bar <- boot_obj$t0[i]
+  delta_star <- coef_bar - coef_star
+  d = quantile(delta_star, c(0.025, 0.975))
+  ci = coef_bar - c(d[2], d[1])
+  vals <- round(exp(cbind(coef_bar, ci[1], ci[2])), 3)
+  entry <- cbind(term=names(boot_obj$t0[i]), or=vals[1], ci_low=vals[2],
+                 ci_high=vals[3])
+  res <- rbind(res, entry)
+}
 
-for (i in 1:nrow(df_out)) {
-  if (is.na(df_out[i, 'conf.low']) | is.na(df_out[i, 'conf.high'])) next
-  if ((df_out[i, 'conf.low'] < 0) & (df_out[i, 'conf.high'] > 0)) {
-    df_out[i, 'sig'] <- ''
+df_results <- merge(as.data.frame(tidy(m, conf.int=FALSE, exponentiate=FALSE)),
+                    res, by='term', all=T)
+df_results$sig <- ''
+df_results[df_results$p.value <= .05, 'sig'] <- '*'
+df_results[df_results$p.value <= .01, 'sig'] <- '**'
+df_results[df_results$p.value <= .001, 'sig'] <- '***'
+for (i in 1:nrow(df_results)) {
+  if (is.na(df_results[i, 'ci_low']) | is.na(df_results[i, 'ci_high'])) next
+  if ((df_results[i, 'ci_low'] < 1) & (df_results[i, 'ci_high'] > 1)) {
+    df_results[i, 'sig'] <- ''
   }
 }
 
-knitr::kable(df_out)
+knitr::kable(df_results)
 ```
 
 # External Aggression (Dogs)
 
-```{r ext_dog_model, warning=FALSE}
+```{r agg_ext_dog_df}
+# Generate the desired subset data frame and collapse Likert outcome to be
+# dichotomous.
+outcome <- "agg_ext_dog"
+excludes <- vector()
+df_agg <- apply_binary_response_criteria(
+    get_agg_data_frame(df.mod, predictors, outcome, excludes),
+    min_cutoff=10)
+df_agg$agg_ext_dog <- as.factor(ifelse(df_agg$agg_ext_dog <= 4, 0, 1))
+summary(df_agg)
+```
+
+```{r agg_ext_dog_glm, warning=FALSE}
+# Fit model to data.
+f <- as.formula(paste0(outcome, "~", "."))
+m <- glm(f, data=df_agg, family="binomial")
+summary(m)
+```
+
+```{r agg_ext_dog_boot, warning=T}
+# Generate bootstrap CIs.
 set.seed(1)
 
-# Generate the desired subset data frame.
-outcome <- "agg_ext_dog"
-df.agg <- apply_binary_response_criteria(
-    get_agg_data_frame(df.mod, predictors, outcome, excludes))
-# Collapse the Likert scale to be dichotomous.
-df.agg$agg_ext_dog <-ifelse(df.agg$agg_ext_dog <= 4, 0, 1)
-summary(df.agg)
+boot_glm <- function(formula, data, indices)
+{
+  d <- data[indices, ]
+  #print(summary(d))
+  fit <- glm(formula, data=d, family='binomial')
+  return(coef(fit))
+}
 
-f <- as.formula(paste0(outcome, "~", "."))
-m <- glm(f, data=df.agg, family="binomial")
+df_agg2 <- rbind(df_agg, df_agg)
+boot_obj <- boot(data=df_agg2, statistic=boot_glm, R=nboot, formula=f,
+                 parallel='multicore')
+print(boot_obj)
+#plot(boot_obj)
+```
 
-df_out <- as.data.frame(tidy(m, conf.int=TRUE, exponentiate=TRUE))
-#df_out$p.value <- round(p.adjust(df_out$p.value, 'BH'), 3)
-df_out$sig <- ''
-df_out[df_out$p.value <= .05, 'sig'] <- '*'
-df_out[df_out$p.value <= .01, 'sig'] <- '**'
-df_out[df_out$p.value <= .001, 'sig'] <- '***'
+```{r agg_ext_dog_ci}
+res <- NULL
+for (i in 1:length(boot_obj$t0)) {
+  coef_star <- boot_obj$t[,i]
+  coef_bar <- boot_obj$t0[i]
+  delta_star <- coef_bar - coef_star
+  d = quantile(delta_star, c(0.025, 0.975))
+  ci = coef_bar - c(d[2], d[1])
+  vals <- round(exp(cbind(coef_bar, ci[1], ci[2])), 3)
+  entry <- cbind(term=names(boot_obj$t0[i]), or=vals[1], ci_low=vals[2],
+                 ci_high=vals[3])
+  res <- rbind(res, entry)
+}
 
-for (i in 1:nrow(df_out)) {
-  if (is.na(df_out[i, 'conf.low']) | is.na(df_out[i, 'conf.high'])) next
-  if ((df_out[i, 'conf.low'] < 0) & (df_out[i, 'conf.high'] > 0)) {
-    df_out[i, 'sig'] <- ''
+df_results <- merge(as.data.frame(tidy(m, conf.int=FALSE, exponentiate=FALSE)),
+                    res, by='term', all=T)
+df_results$sig <- ''
+df_results[df_results$p.value <= .05, 'sig'] <- '*'
+df_results[df_results$p.value <= .01, 'sig'] <- '**'
+df_results[df_results$p.value <= .001, 'sig'] <- '***'
+for (i in 1:nrow(df_results)) {
+  if (is.na(df_results[i, 'ci_low']) | is.na(df_results[i, 'ci_high'])) next
+  if ((df_results[i, 'ci_low'] < 1) & (df_results[i, 'ci_high'] > 1)) {
+    df_results[i, 'sig'] <- ''
   }
 }
 
-knitr::kable(df_out)
+knitr::kable(df_results)
 ```
 
 # Predatory Aggression
 
-```{r pred_model, warning=FALSE}
+```{r agg_pred_df}
+# Generate the desired subset data frame and collapse Likert outcome to be
+# dichotomous.
+outcome <- "agg_pred"
+excludes <- vector()
+df_agg <- apply_binary_response_criteria(
+    get_agg_data_frame(df.mod, predictors, outcome, excludes),
+    min_cutoff=10)
+df_agg$agg_pred <- as.factor(ifelse(df_agg$agg_pred <= 4, 0, 1))
+summary(df_agg)
+```
+
+```{r agg_pred_glm, warning=FALSE}
+# Fit model to data.
+f <- as.formula(paste0(outcome, "~", "."))
+m <- glm(f, data=df_agg, family="binomial")
+summary(m)
+```
+
+```{r agg_pred_boot, warning=T}
+# Generate bootstrap CIs.
 set.seed(1)
 
-# Generate the desired subset data frame.
-outcome <- "agg_pred"
-df.agg <- apply_binary_response_criteria(
-    get_agg_data_frame(df.mod, predictors, outcome, excludes))
-# Collapse the Likert scale to be dichotomous.
-df.agg$agg_pred <-ifelse(df.agg$agg_pred <= 4, 0, 1)
-summary(df.agg)
+boot_glm <- function(formula, data, indices)
+{
+  d <- data[indices, ]
+  #print(summary(d))
+  fit <- glm(formula, data=d, family='binomial')
+  return(coef(fit))
+}
 
-f <- as.formula(paste0(outcome, "~", "."))
-m <- glm(f, data=df.agg, family="binomial")
+df_agg2 <- rbind(df_agg, df_agg)
+boot_obj <- boot(data=df_agg2, statistic=boot_glm, R=nboot, formula=f,
+                 parallel='multicore')
+print(boot_obj)
+#plot(boot_obj)
+```
 
-df_out <- as.data.frame(tidy(m, conf.int=TRUE, exponentiate=TRUE))
-#df_out$p.value <- round(p.adjust(df_out$p.value, 'BH'), 3)
-df_out$sig <- ''
-df_out[df_out$p.value <= .05, 'sig'] <- '*'
-df_out[df_out$p.value <= .01, 'sig'] <- '**'
-df_out[df_out$p.value <= .001, 'sig'] <- '***'
+```{r agg_pred_ci}
+res <- NULL
+for (i in 1:length(boot_obj$t0)) {
+  coef_star <- boot_obj$t[,i]
+  coef_bar <- boot_obj$t0[i]
+  delta_star <- coef_bar - coef_star
+  d = quantile(delta_star, c(0.025, 0.975))
+  ci = coef_bar - c(d[2], d[1])
+  vals <- round(exp(cbind(coef_bar, ci[1], ci[2])), 3)
+  entry <- cbind(term=names(boot_obj$t0[i]), or=vals[1], ci_low=vals[2],
+                 ci_high=vals[3])
+  res <- rbind(res, entry)
+}
 
-for (i in 1:nrow(df_out)) {
-  if (is.na(df_out[i, 'conf.low']) | is.na(df_out[i, 'conf.high'])) next
-  if ((df_out[i, 'conf.low'] < 0) & (df_out[i, 'conf.high'] > 0)) {
-    df_out[i, 'sig'] <- ''
+df_results <- merge(as.data.frame(tidy(m, conf.int=FALSE, exponentiate=FALSE)),
+                    res, by='term', all=T)
+df_results$sig <- ''
+df_results[df_results$p.value <= .05, 'sig'] <- '*'
+df_results[df_results$p.value <= .01, 'sig'] <- '**'
+df_results[df_results$p.value <= .001, 'sig'] <- '***'
+for (i in 1:nrow(df_results)) {
+  if (is.na(df_results[i, 'ci_low']) | is.na(df_results[i, 'ci_high'])) next
+  if ((df_results[i, 'ci_low'] < 1) & (df_results[i, 'ci_high'] > 1)) {
+    df_results[i, 'sig'] <- ''
   }
 }
 
-knitr::kable(df_out)
+knitr::kable(df_results)
 ```
