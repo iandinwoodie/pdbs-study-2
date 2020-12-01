@@ -321,7 +321,7 @@ boot_glm <- function(formula, data, indices)
 }
 
 df_agg2 <- rbind(df_agg, df_agg, df_agg)
-boot_obj <- boot(data=df_agg2, statistic=boot_glm, R=10000, formula=f,
+boot_obj <- boot(data=df_agg2, statistic=boot_glm, R=20000, formula=f,
                  parallel='multicore')
 print(boot_obj)
 #plot(boot_obj)
