@@ -12,6 +12,7 @@ library(broom)
 library(AER)
 library(boot)
 opts_chunk$set(echo=TRUE)
+set.seed(1)
 ```
 
 # Preparing the Data
@@ -197,7 +198,7 @@ get_agg_data_frame <- function(df, pred.patterns, outcome, excludes)
 
 # Overall Aggression
 
-```{r avg_agg_df}
+```{r agg_avg_df}
 # Generate the desired subset data frame and collapse Likert outcome to be
 # dichotomous.
 outcome <- "agg_avg"
@@ -208,14 +209,14 @@ df_agg$agg_avg <-as.factor(ifelse(df_agg$agg_avg <= 4, 0, 1))
 summary(df_agg)
 ```
 
-```{r avg_agg_glm, warning=FALSE}
+```{r agg_avg_glm, warning=FALSE}
 # Fit model to data.
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
 summary(m)
 ```
 
-```{r avg_agg_boot, warning=FALSE}
+```{r agg_avg_boot, warning=FALSE}
 # Generate bootstrap CIs.
 set.seed(1)
 nboot <- 1000
@@ -233,7 +234,7 @@ boot_obj <- boot(data=df_agg, statistic=boot_glm, R=nboot, formula=f,
 #plot(boot_obj)
 ```
 
-```{r}
+```{r agg_avg_ci}
 res <- NULL
 for (i in 1:length(boot_obj$t0)) {
   coef_star <- boot_obj$t[,i]
