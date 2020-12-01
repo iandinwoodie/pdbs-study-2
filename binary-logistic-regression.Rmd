@@ -235,6 +235,7 @@ f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
 
 df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+#df_results$p.value <- p.adjust(df_results$p.value, method='BH')
 df_results$sig <- ''
 df_results[df_results$p.value <= .05, 'sig'] <- '*'
 df_results[df_results$p.value <= .01, 'sig'] <- '**'
@@ -272,6 +273,7 @@ f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
 
 df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+#df_results$p.value <- p.adjust(df_results$p.value, method='BH')
 df_results$sig <- ''
 df_results[df_results$p.value <= .05, 'sig'] <- '*'
 df_results[df_results$p.value <= .01, 'sig'] <- '**'
@@ -306,6 +308,7 @@ f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
 
 df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+#df_results$p.value <- p.adjust(df_results$p.value, method='BH')
 df_results$sig <- ''
 df_results[df_results$p.value <= .05, 'sig'] <- '*'
 df_results[df_results$p.value <= .01, 'sig'] <- '**'
@@ -340,6 +343,7 @@ f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
 
 df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+#df_results$p.value <- p.adjust(df_results$p.value, method='BH')
 df_results$sig <- ''
 df_results[df_results$p.value <= .05, 'sig'] <- '*'
 df_results[df_results$p.value <= .01, 'sig'] <- '**'
@@ -374,6 +378,7 @@ f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
 
 df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+#df_results$p.value <- p.adjust(df_results$p.value, method='BH')
 df_results$sig <- ''
 df_results[df_results$p.value <= .05, 'sig'] <- '*'
 df_results[df_results$p.value <= .01, 'sig'] <- '**'
@@ -408,6 +413,7 @@ f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
 
 df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+#df_results$p.value <- p.adjust(df_results$p.value, method='BH')
 df_results$sig <- ''
 df_results[df_results$p.value <= .05, 'sig'] <- '*'
 df_results[df_results$p.value <= .01, 'sig'] <- '**'

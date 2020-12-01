@@ -944,6 +944,7 @@ f &lt;- as.formula(paste0(outcome, &quot;~&quot;, &quot;.&quot;))
 m &lt;- glm(f, data=df_agg, family=&quot;binomial&quot;)
 
 df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+#df_results$p.value &lt;- p.adjust(df_results$p.value, method=&#39;BH&#39;)
 df_results$sig &lt;- &#39;&#39;
 df_results[df_results$p.value &lt;= .05, &#39;sig&#39;] &lt;- &#39;*&#39;
 df_results[df_results$p.value &lt;= .01, &#39;sig&#39;] &lt;- &#39;**&#39;
@@ -1731,6 +1732,7 @@ f &lt;- as.formula(paste0(outcome, &quot;~&quot;, &quot;.&quot;))
 m &lt;- glm(f, data=df_agg, family=&quot;binomial&quot;)
 
 df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+#df_results$p.value &lt;- p.adjust(df_results$p.value, method=&#39;BH&#39;)
 df_results$sig &lt;- &#39;&#39;
 df_results[df_results$p.value &lt;= .05, &#39;sig&#39;] &lt;- &#39;*&#39;
 df_results[df_results$p.value &lt;= .01, &#39;sig&#39;] &lt;- &#39;**&#39;
@@ -2228,6 +2230,7 @@ f &lt;- as.formula(paste0(outcome, &quot;~&quot;, &quot;.&quot;))
 m &lt;- glm(f, data=df_agg, family=&quot;binomial&quot;)
 
 df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+#df_results$p.value &lt;- p.adjust(df_results$p.value, method=&#39;BH&#39;)
 df_results$sig &lt;- &#39;&#39;
 df_results[df_results$p.value &lt;= .05, &#39;sig&#39;] &lt;- &#39;*&#39;
 df_results[df_results$p.value &lt;= .01, &#39;sig&#39;] &lt;- &#39;**&#39;
@@ -2905,6 +2908,7 @@ f &lt;- as.formula(paste0(outcome, &quot;~&quot;, &quot;.&quot;))
 m &lt;- glm(f, data=df_agg, family=&quot;binomial&quot;)
 
 df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+#df_results$p.value &lt;- p.adjust(df_results$p.value, method=&#39;BH&#39;)
 df_results$sig &lt;- &#39;&#39;
 df_results[df_results$p.value &lt;= .05, &#39;sig&#39;] &lt;- &#39;*&#39;
 df_results[df_results$p.value &lt;= .01, &#39;sig&#39;] &lt;- &#39;**&#39;
@@ -3625,6 +3629,7 @@ f &lt;- as.formula(paste0(outcome, &quot;~&quot;, &quot;.&quot;))
 m &lt;- glm(f, data=df_agg, family=&quot;binomial&quot;)
 
 df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+#df_results$p.value &lt;- p.adjust(df_results$p.value, method=&#39;BH&#39;)
 df_results$sig &lt;- &#39;&#39;
 df_results[df_results$p.value &lt;= .05, &#39;sig&#39;] &lt;- &#39;*&#39;
 df_results[df_results$p.value &lt;= .01, &#39;sig&#39;] &lt;- &#39;**&#39;
@@ -4353,6 +4358,7 @@ f &lt;- as.formula(paste0(outcome, &quot;~&quot;, &quot;.&quot;))
 m &lt;- glm(f, data=df_agg, family=&quot;binomial&quot;)
 
 df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+#df_results$p.value &lt;- p.adjust(df_results$p.value, method=&#39;BH&#39;)
 df_results$sig &lt;- &#39;&#39;
 df_results[df_results$p.value &lt;= .05, &#39;sig&#39;] &lt;- &#39;*&#39;
 df_results[df_results$p.value &lt;= .01, &#39;sig&#39;] &lt;- &#39;**&#39;
