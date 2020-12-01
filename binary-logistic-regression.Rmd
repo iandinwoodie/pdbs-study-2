@@ -13,7 +13,6 @@ library(AER)
 library(boot)
 opts_chunk$set(echo=TRUE)
 set.seed(1)
-nboot <- 1000
 ```
 
 # Preparing the Data
@@ -234,49 +233,15 @@ summary(df_agg)
 # Fit model to data.
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
-summary(m)
-```
 
-```{r agg_avg_boot, warning=FALSE}
-# Generate bootstrap CIs.
-set.seed(1)
-
-boot_glm <- function(formula, data, indices)
-{
-  d <- data[indices, ]
-  fit <- glm(formula, data=d, family='binomial')
-  return(coef(fit))
-}
-
-boot_obj <- boot(data=df_agg, statistic=boot_glm, R=nboot, formula=f,
-                 parallel='multicore')
-print(boot_obj)
-#plot(boot_obj)
-```
-
-```{r agg_avg_ci}
-res <- NULL
-for (i in 1:length(boot_obj$t0)) {
-  coef_star <- boot_obj$t[,i]
-  coef_bar <- boot_obj$t0[i]
-  delta_star <- coef_bar - coef_star
-  d = quantile(delta_star, c(0.025, 0.975))
-  ci = coef_bar - c(d[2], d[1])
-  vals <- round(exp(cbind(coef_bar, ci[1], ci[2])), 3)
-  entry <- cbind(term=names(boot_obj$t0[i]), or=vals[1], ci_low=vals[2],
-                 ci_high=vals[3])
-  res <- rbind(res, entry)
-}
-
-df_results <- merge(as.data.frame(tidy(m, conf.int=FALSE, exponentiate=FALSE)),
-                    res, by='term', all=T)
+df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 df_results$sig <- ''
 df_results[df_results$p.value <= .05, 'sig'] <- '*'
 df_results[df_results$p.value <= .01, 'sig'] <- '**'
 df_results[df_results$p.value <= .001, 'sig'] <- '***'
 for (i in 1:nrow(df_results)) {
-  if (is.na(df_results[i, 'ci_low']) | is.na(df_results[i, 'ci_high'])) next
-  if ((df_results[i, 'ci_low'] < 1) & (df_results[i, 'ci_high'] > 1)) {
+  if (is.na(df_results[i, 'conf.low']) | is.na(df_results[i, 'conf.high'])) next
+  if ((df_results[i, 'conf.low'] < 1) & (df_results[i, 'conf.high'] > 1)) {
     df_results[i, 'sig'] <- ''
   }
 }
@@ -305,58 +270,20 @@ summary(df_agg)
 # Fit model to data.
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
-summary(m)
-```
 
-```{r agg_conf_boot, warning=FALSE}
-# Generate bootstrap CIs.
-set.seed(2)
-
-boot_glm <- function(formula, data, indices)
-{
-  d <- data[indices, ]
-  #print(summary(d))
-  fit <- glm(formula, data=d, family='binomial')
-  return(coef(fit))
-}
-
-df_agg2 <- rbind(df_agg, df_agg, df_agg)
-boot_obj <- boot(data=df_agg2, statistic=boot_glm, R=10000, formula=f,
-                 parallel='multicore')
-print(boot_obj)
-#plot(boot_obj)
-```
-
-```{r agg_conf_ci}
-res <- NULL
-for (i in 1:length(boot_obj$t0)) {
-  coef_star <- boot_obj$t[,i]
-  coef_bar <- boot_obj$t0[i]
-  delta_star <- coef_bar - coef_star
-  d = quantile(delta_star, c(0.025, 0.975))
-  ci = coef_bar - c(d[2], d[1])
-  vals <- round(exp(cbind(coef_bar, ci[1], ci[2])), 3)
-  entry <- cbind(term=names(boot_obj$t0[i]), or=vals[1], ci_low=vals[2],
-                 ci_high=vals[3])
-  res <- rbind(res, entry)
-}
-
-df_results <- merge(as.data.frame(tidy(m, conf.int=FALSE, exponentiate=FALSE)),
-                    res, by='term', all=T)
+df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 df_results$sig <- ''
 df_results[df_results$p.value <= .05, 'sig'] <- '*'
 df_results[df_results$p.value <= .01, 'sig'] <- '**'
 df_results[df_results$p.value <= .001, 'sig'] <- '***'
 for (i in 1:nrow(df_results)) {
-  if (is.na(df_results[i, 'ci_low']) | is.na(df_results[i, 'ci_high'])) next
-  if ((df_results[i, 'ci_low'] < 1) & (df_results[i, 'ci_high'] > 1)) {
+  if (is.na(df_results[i, 'conf.low']) | is.na(df_results[i, 'conf.high'])) next
+  if ((df_results[i, 'conf.low'] < 1) & (df_results[i, 'conf.high'] > 1)) {
     df_results[i, 'sig'] <- ''
   }
 }
 
 knitr::kable(df_results)
-
-confint(m)
 ```
 
 # I.D.H. Aggression
@@ -377,58 +304,20 @@ summary(df_agg)
 # Fit model to data.
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
-summary(m)
-```
 
-```{r agg_idh_boot, warning=T}
-# Generate bootstrap CIs.
-set.seed(1)
-
-boot_glm <- function(formula, data, indices)
-{
-  d <- data[indices, ]
-  #print(summary(d))
-  fit <- glm(formula, data=d, family='binomial')
-  return(coef(fit))
-}
-
-df_agg2 <- rbind(df_agg, df_agg)
-boot_obj <- boot(data=df_agg2, statistic=boot_glm, R=nboot, formula=f,
-                 parallel='multicore')
-print(boot_obj)
-#plot(boot_obj)
-```
-
-```{r agg_idh_ci}
-res <- NULL
-for (i in 1:length(boot_obj$t0)) {
-  coef_star <- boot_obj$t[,i]
-  coef_bar <- boot_obj$t0[i]
-  delta_star <- coef_bar - coef_star
-  d = quantile(delta_star, c(0.025, 0.975))
-  ci = coef_bar - c(d[2], d[1])
-  vals <- round(exp(cbind(coef_bar, ci[1], ci[2])), 3)
-  entry <- cbind(term=names(boot_obj$t0[i]), or=vals[1], ci_low=vals[2],
-                 ci_high=vals[3])
-  res <- rbind(res, entry)
-}
-
-df_results <- merge(as.data.frame(tidy(m, conf.int=FALSE, exponentiate=FALSE)),
-                    res, by='term', all=T)
+df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 df_results$sig <- ''
 df_results[df_results$p.value <= .05, 'sig'] <- '*'
 df_results[df_results$p.value <= .01, 'sig'] <- '**'
 df_results[df_results$p.value <= .001, 'sig'] <- '***'
 for (i in 1:nrow(df_results)) {
-  if (is.na(df_results[i, 'ci_low']) | is.na(df_results[i, 'ci_high'])) next
-  if ((df_results[i, 'ci_low'] < 1) & (df_results[i, 'ci_high'] > 1)) {
+  if (is.na(df_results[i, 'conf.low']) | is.na(df_results[i, 'conf.high'])) next
+  if ((df_results[i, 'conf.low'] < 1) & (df_results[i, 'conf.high'] > 1)) {
     df_results[i, 'sig'] <- ''
   }
 }
 
 knitr::kable(df_results)
-
-confint(m)
 ```
 
 # External Aggression (People)
@@ -449,51 +338,15 @@ summary(df_agg)
 # Fit model to data.
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
-summary(m)
-```
 
-```{r agg_ext_ppl_boot, warning=T}
-# Generate bootstrap CIs.
-set.seed(1)
-
-boot_glm <- function(formula, data, indices)
-{
-  d <- data[indices, ]
-  #print(summary(d))
-  fit <- glm(formula, data=d, family='binomial')
-  return(coef(fit))
-}
-
-df_agg2 <- rbind(df_agg, df_agg)
-boot_obj <- boot(data=df_agg2, statistic=boot_glm, R=nboot, formula=f,
-                 parallel='multicore')
-print(boot_obj)
-#plot(boot_obj)
-```
-
-```{r agg_ext_ppl_ci}
-res <- NULL
-for (i in 1:length(boot_obj$t0)) {
-  coef_star <- boot_obj$t[,i]
-  coef_bar <- boot_obj$t0[i]
-  delta_star <- coef_bar - coef_star
-  d = quantile(delta_star, c(0.025, 0.975))
-  ci = coef_bar - c(d[2], d[1])
-  vals <- round(exp(cbind(coef_bar, ci[1], ci[2])), 3)
-  entry <- cbind(term=names(boot_obj$t0[i]), or=vals[1], ci_low=vals[2],
-                 ci_high=vals[3])
-  res <- rbind(res, entry)
-}
-
-df_results <- merge(as.data.frame(tidy(m, conf.int=FALSE, exponentiate=FALSE)),
-                    res, by='term', all=T)
+df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 df_results$sig <- ''
 df_results[df_results$p.value <= .05, 'sig'] <- '*'
 df_results[df_results$p.value <= .01, 'sig'] <- '**'
 df_results[df_results$p.value <= .001, 'sig'] <- '***'
 for (i in 1:nrow(df_results)) {
-  if (is.na(df_results[i, 'ci_low']) | is.na(df_results[i, 'ci_high'])) next
-  if ((df_results[i, 'ci_low'] < 1) & (df_results[i, 'ci_high'] > 1)) {
+  if (is.na(df_results[i, 'conf.low']) | is.na(df_results[i, 'conf.high'])) next
+  if ((df_results[i, 'conf.low'] < 1) & (df_results[i, 'conf.high'] > 1)) {
     df_results[i, 'sig'] <- ''
   }
 }
@@ -519,51 +372,15 @@ summary(df_agg)
 # Fit model to data.
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
-summary(m)
-```
 
-```{r agg_ext_dog_boot, warning=T}
-# Generate bootstrap CIs.
-set.seed(1)
-
-boot_glm <- function(formula, data, indices)
-{
-  d <- data[indices, ]
-  #print(summary(d))
-  fit <- glm(formula, data=d, family='binomial')
-  return(coef(fit))
-}
-
-df_agg2 <- rbind(df_agg, df_agg)
-boot_obj <- boot(data=df_agg2, statistic=boot_glm, R=nboot, formula=f,
-                 parallel='multicore')
-print(boot_obj)
-#plot(boot_obj)
-```
-
-```{r agg_ext_dog_ci}
-res <- NULL
-for (i in 1:length(boot_obj$t0)) {
-  coef_star <- boot_obj$t[,i]
-  coef_bar <- boot_obj$t0[i]
-  delta_star <- coef_bar - coef_star
-  d = quantile(delta_star, c(0.025, 0.975))
-  ci = coef_bar - c(d[2], d[1])
-  vals <- round(exp(cbind(coef_bar, ci[1], ci[2])), 3)
-  entry <- cbind(term=names(boot_obj$t0[i]), or=vals[1], ci_low=vals[2],
-                 ci_high=vals[3])
-  res <- rbind(res, entry)
-}
-
-df_results <- merge(as.data.frame(tidy(m, conf.int=FALSE, exponentiate=FALSE)),
-                    res, by='term', all=T)
+df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 df_results$sig <- ''
 df_results[df_results$p.value <= .05, 'sig'] <- '*'
 df_results[df_results$p.value <= .01, 'sig'] <- '**'
 df_results[df_results$p.value <= .001, 'sig'] <- '***'
 for (i in 1:nrow(df_results)) {
-  if (is.na(df_results[i, 'ci_low']) | is.na(df_results[i, 'ci_high'])) next
-  if ((df_results[i, 'ci_low'] < 1) & (df_results[i, 'ci_high'] > 1)) {
+  if (is.na(df_results[i, 'conf.low']) | is.na(df_results[i, 'conf.high'])) next
+  if ((df_results[i, 'conf.low'] < 1) & (df_results[i, 'conf.high'] > 1)) {
     df_results[i, 'sig'] <- ''
   }
 }
@@ -589,51 +406,15 @@ summary(df_agg)
 # Fit model to data.
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
-summary(m)
-```
 
-```{r agg_pred_boot, warning=T}
-# Generate bootstrap CIs.
-set.seed(1)
-
-boot_glm <- function(formula, data, indices)
-{
-  d <- data[indices, ]
-  #print(summary(d))
-  fit <- glm(formula, data=d, family='binomial')
-  return(coef(fit))
-}
-
-df_agg2 <- rbind(df_agg, df_agg)
-boot_obj <- boot(data=df_agg2, statistic=boot_glm, R=nboot, formula=f,
-                 parallel='multicore')
-print(boot_obj)
-#plot(boot_obj)
-```
-
-```{r agg_pred_ci}
-res <- NULL
-for (i in 1:length(boot_obj$t0)) {
-  coef_star <- boot_obj$t[,i]
-  coef_bar <- boot_obj$t0[i]
-  delta_star <- coef_bar - coef_star
-  d = quantile(delta_star, c(0.025, 0.975))
-  ci = coef_bar - c(d[2], d[1])
-  vals <- round(exp(cbind(coef_bar, ci[1], ci[2])), 3)
-  entry <- cbind(term=names(boot_obj$t0[i]), or=vals[1], ci_low=vals[2],
-                 ci_high=vals[3])
-  res <- rbind(res, entry)
-}
-
-df_results <- merge(as.data.frame(tidy(m, conf.int=FALSE, exponentiate=FALSE)),
-                    res, by='term', all=T)
+df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 df_results$sig <- ''
 df_results[df_results$p.value <= .05, 'sig'] <- '*'
 df_results[df_results$p.value <= .01, 'sig'] <- '**'
 df_results[df_results$p.value <= .001, 'sig'] <- '***'
 for (i in 1:nrow(df_results)) {
-  if (is.na(df_results[i, 'ci_low']) | is.na(df_results[i, 'ci_high'])) next
-  if ((df_results[i, 'ci_low'] < 1) & (df_results[i, 'ci_high'] > 1)) {
+  if (is.na(df_results[i, 'conf.low']) | is.na(df_results[i, 'conf.high'])) next
+  if ((df_results[i, 'conf.low'] < 1) & (df_results[i, 'conf.high'] > 1)) {
     df_results[i, 'sig'] <- ''
   }
 }
