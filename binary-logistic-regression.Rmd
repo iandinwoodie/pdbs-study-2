@@ -111,7 +111,7 @@ predictors <- c(
   '^fear_anxiety$',
   '^reward$',
   '^has_bitten$',
-  'trainer_cred',
+  '^trainer_cred$',
   'trainer_cpdt',
   '^consultant_cred$',
   '^consult_cbcc$',
@@ -148,13 +148,18 @@ at least 10 responses per response option. We apply this rule of thumb below.
 apply_binary_response_criteria <- function(df, min_cutoff=10)
 {
   drops <- NULL
+  outcomes <- NULL
   for (col in names(df)) {
-    if (grepl("agg_", col, fixed=TRUE)) next
+    if (grepl("agg_", col, fixed=TRUE)) {
+      outcomes <- c(outcomes, col)
+      next
+    }
     counts <- count(df[, col])
     if (nrow(counts) < 2) {
       drops <- c(drops, col)
-      break
+      next
     }
+    
     for (row in 1:nrow(counts)) {
       if (counts[row, "freq"] < min_cutoff) {
         drops <- c(drops, col)
@@ -272,7 +277,7 @@ outcome <- "agg_conf"
 excludes <- vector()
 df_agg <- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes),
-    min_cutoff=20)
+    min_cutoff=25)
 df_agg$agg_conf <- as.factor(ifelse(df_agg$agg_conf <= 4, 0, 1))
 summary(df_agg)
 ```
@@ -284,9 +289,9 @@ m <- glm(f, data=df_agg, family="binomial")
 summary(m)
 ```
 
-```{r agg_conf_boot, warning=T}
+```{r agg_conf_boot, warning=FALSE}
 # Generate bootstrap CIs.
-set.seed(1)
+set.seed(2)
 
 boot_glm <- function(formula, data, indices)
 {
@@ -296,7 +301,7 @@ boot_glm <- function(formula, data, indices)
   return(coef(fit))
 }
 
-df_agg2 <- rbind(df_agg, df_agg)
+df_agg2 <- rbind(df_agg, df_agg, df_agg)
 boot_obj <- boot(data=df_agg2, statistic=boot_glm, R=nboot, formula=f,
                  parallel='multicore')
 print(boot_obj)
