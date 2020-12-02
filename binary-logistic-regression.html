@@ -893,6 +893,7 @@ excludes &lt;- vector()
 df_agg &lt;- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes))
 df_agg$agg_avg &lt;- as.factor(ifelse(df_agg$agg_avg &lt;= 4, 0, 1))
+
 summary(df_agg)</code></pre>
 <pre><code>##  has_bitten prof_type_3 prof_type_1 prof_type_2 trainer_cred trainer_cpdt
 ##  0:615      0:748       0:577       0:685       0:687        0:793       
@@ -942,8 +943,140 @@ summary(df_agg)</code></pre>
 <pre class="r"><code># Fit model to data.
 f &lt;- as.formula(paste0(outcome, &quot;~&quot;, &quot;.&quot;))
 m &lt;- glm(f, data=df_agg, family=&quot;binomial&quot;)
-
-df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+summary(m)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = f, family = &quot;binomial&quot;, data = df_agg)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.5749  -0.5864   0.5206   0.7655   2.0318  
+## 
+## Coefficients:
+##                         Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)             0.485220   0.331488   1.464 0.143259    
+## has_bitten1            -0.214868   0.177663  -1.209 0.226502    
+## prof_type_31           -0.101665   0.275856  -0.369 0.712468    
+## prof_type_11           -0.318046   0.287999  -1.104 0.269449    
+## prof_type_21            0.302414   0.344608   0.878 0.380182    
+## trainer_cred1           0.424693   0.359997   1.180 0.238115    
+## trainer_cpdt1          -0.346025   0.353898  -0.978 0.328195    
+## consultant_cred1        0.411947   0.471507   0.874 0.382292    
+## consult_cbcc1          -0.218330   0.453549  -0.481 0.630246    
+## consult_cdbc1          -0.603424   0.479098  -1.260 0.207849    
+## consult_caab1          -0.367040   0.457470  -0.802 0.422364    
+## consult_dacvb1         -0.874773   0.473168  -1.849 0.064493 .  
+## equipment_11           -0.144256   0.176929  -0.815 0.414880    
+## equipment_21            0.148692   0.222743   0.668 0.504423    
+## equipment_31            0.449560   0.272116   1.652 0.098516 .  
+## equipment_41           -0.016605   0.222691  -0.075 0.940562    
+## equipment_51           -0.068624   0.208224  -0.330 0.741725    
+## equipment_91           -0.084914   0.193599  -0.439 0.660947    
+## equipment_61           -1.959274   0.628003  -3.120 0.001809 ** 
+## equipment_71           -0.175045   0.372925  -0.469 0.638795    
+## equipment_101          -0.451628   0.317877  -1.421 0.155386    
+## equipment_81           -0.056369   0.351413  -0.160 0.872560    
+## med_list_11            -0.034649   0.317964  -0.109 0.913225    
+## med_list_71            -0.570223   0.363330  -1.569 0.116546    
+## med_list_91            -0.006672   0.506449  -0.013 0.989489    
+## med_list_101           -0.042014   0.816614  -0.051 0.958967    
+## med_list_111            1.710700   1.077587   1.588 0.112393    
+## med_list_131           -0.296509   0.355154  -0.835 0.403789    
+## alt_med_type_11        -1.244134   0.666458  -1.867 0.061931 .  
+## alt_med_type_21        -0.089530   0.578908  -0.155 0.877094    
+## alt_med_type_31        -0.260588   0.455063  -0.573 0.566888    
+## alt_med_type_41         0.878012   0.878841   0.999 0.317767    
+## alt_med_type_61        -1.007301   0.459384  -2.193 0.028327 *  
+## alt_med_type_81        -0.290137   1.034407  -0.280 0.779105    
+## alt_med_type_111       -0.130148   0.526613  -0.247 0.804799    
+## alt_med_type_121        0.467967   0.610128   0.767 0.443083    
+## alt_med_type_131        1.105969   0.477707   2.315 0.020604 *  
+## alt_med_type_151       -0.398069   0.426368  -0.934 0.350495    
+## alt_med_type_161        0.460065   0.453113   1.015 0.309942    
+## alt_med_type_181        0.565959   0.867514   0.652 0.514148    
+## behavior_tech_used_11   0.054477   0.195259   0.279 0.780247    
+## behavior_tech_used_21   0.672960   0.223356   3.013 0.002587 ** 
+## behavior_tech_used_31   0.165951   0.185444   0.895 0.370850    
+## behavior_tech_used_41   0.678495   0.191634   3.541 0.000399 ***
+## behavior_tech_used_51   1.181150   0.823289   1.435 0.151380    
+## behavior_tech_used_61  -0.384767   0.196566  -1.957 0.050295 .  
+## behavior_tech_used_71   0.043535   0.181371   0.240 0.810306    
+## behavior_tech_used_81  -0.295823   0.212442  -1.392 0.163775    
+## behavior_tech_used_91   0.097975   0.211714   0.463 0.643530    
+## behavior_tech_used_101 -0.155771   0.203326  -0.766 0.443609    
+## behavior_tech_used_111  0.339242   0.263864   1.286 0.198559    
+## behavior_tech_used_121 -0.162684   0.194271  -0.837 0.402365    
+## behavior_tech_used_131  0.232583   0.193903   1.199 0.230341    
+## behavior_tech_used_141  0.862000   0.246576   3.496 0.000472 ***
+## behavior_tech_used_151 -0.377147   0.222760  -1.693 0.090443 .  
+## behavior_tech_used_161 -0.015616   0.257545  -0.061 0.951650    
+## behavior_tech_used_171 -0.072916   0.303870  -0.240 0.810363    
+## behavior_tech_used_181  0.429810   0.181934   2.362 0.018155 *  
+## behavior_tech_used_191  0.066280   0.382579   0.173 0.862459    
+## male1                  -0.033231   0.167683  -0.198 0.842904    
+## behavior_prog_11        0.320811   0.431653   0.743 0.457351    
+## behavior_prog_21        0.579642   0.370653   1.564 0.117855    
+## behavior_prog_31        0.860847   0.320538   2.686 0.007239 ** 
+## behavior_prog_41        0.668090   0.523917   1.275 0.202244    
+## pain1                  -0.787234   0.710644  -1.108 0.267959    
+## fear_anxiety1          -0.164320   0.175703  -0.935 0.349676    
+## reward1                 0.112519   0.236709   0.475 0.634539    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 1091.12  on 960  degrees of freedom
+## Residual deviance:  944.78  on 894  degrees of freedom
+## AIC: 1078.8
+## 
+## Number of Fisher Scoring iterations: 5</code></pre>
+<pre class="r"><code>print(vif(m))</code></pre>
+<pre><code>##            has_bitten           prof_type_3           prof_type_1 
+##              1.154413              2.020820              3.040047 
+##           prof_type_2          trainer_cred          trainer_cpdt 
+##              3.489401              3.842197              2.576727 
+##       consultant_cred          consult_cbcc          consult_cdbc 
+##              5.112818              1.842486              1.564896 
+##          consult_caab         consult_dacvb           equipment_1 
+##              1.497965              2.013337              1.209836 
+##           equipment_2           equipment_3           equipment_4 
+##              1.185505              1.336360              1.201454 
+##           equipment_5           equipment_9           equipment_6 
+##              1.317013              1.147039              1.142742 
+##           equipment_7          equipment_10           equipment_8 
+##              1.215314              1.325583              1.131924 
+##            med_list_1            med_list_7            med_list_9 
+##              1.681783              1.496501              1.387468 
+##           med_list_10           med_list_11           med_list_13 
+##              1.476985              1.246476              1.362194 
+##        alt_med_type_1        alt_med_type_2        alt_med_type_3 
+##              1.446248              1.735802              1.432773 
+##        alt_med_type_4        alt_med_type_6        alt_med_type_8 
+##              1.247732              2.185362              1.295447 
+##       alt_med_type_11       alt_med_type_12       alt_med_type_13 
+##              1.892592              1.461620              1.739969 
+##       alt_med_type_15       alt_med_type_16       alt_med_type_18 
+##              1.929790              2.052136              1.482886 
+##  behavior_tech_used_1  behavior_tech_used_2  behavior_tech_used_3 
+##              1.481461              1.290252              1.301261 
+##  behavior_tech_used_4  behavior_tech_used_5  behavior_tech_used_6 
+##              1.279902              1.090366              1.168634 
+##  behavior_tech_used_7  behavior_tech_used_8  behavior_tech_used_9 
+##              1.272565              1.431970              1.598481 
+## behavior_tech_used_10 behavior_tech_used_11 behavior_tech_used_12 
+##              1.507668              1.357577              1.224735 
+## behavior_tech_used_13 behavior_tech_used_14 behavior_tech_used_15 
+##              1.382226              1.382253              1.415350 
+## behavior_tech_used_16 behavior_tech_used_17 behavior_tech_used_18 
+##              1.529206              1.155634              1.272252 
+## behavior_tech_used_19                  male       behavior_prog_1 
+##              1.103323              1.074658              1.215956 
+##       behavior_prog_2       behavior_prog_3       behavior_prog_4 
+##              1.237791              1.503679              1.149165 
+##                  pain          fear_anxiety                reward 
+##              1.325529              1.159077              1.367676</code></pre>
+<pre class="r"><code>df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 #df_results$p.value &lt;- p.adjust(df_results$p.value, method=&#39;BH&#39;)
 df_results$sig &lt;- &#39;&#39;
 df_results[df_results$p.value &lt;= .05, &#39;sig&#39;] &lt;- &#39;*&#39;
@@ -1664,38 +1797,7 @@ df_agg &lt;- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes),
     min_cutoff=20)
 df_agg$agg_conf &lt;- as.factor(ifelse(df_agg$agg_conf &lt;= 4, 0, 1))
-summary(df_agg)</code></pre>
-<pre><code>##  has_bitten prof_type_3 prof_type_1 prof_type_2 trainer_cred trainer_cpdt
-##  0:122      0:163       0:139       0:160       0:162        0:193       
-##  1:107      1: 66       1: 90       1: 69       1: 67        1: 36       
-##  consultant_cred equipment_1 equipment_2 equipment_3 equipment_4 equipment_5
-##  0:184           0:118       0:191       0:207       0:192       0:163      
-##  1: 45           1:111       1: 38       1: 22       1: 37       1: 66      
-##  equipment_9 equipment_10 med_list_1 med_list_13 alt_med_type_15
-##  0:158       0:204        0:190      0:208       0:205          
-##  1: 71       1: 25        1: 39      1: 21       1: 24          
-##  alt_med_type_16 behavior_tech_used_1 behavior_tech_used_2 behavior_tech_used_3
-##  0:203           0: 93                0:159                0:117               
-##  1: 26           1:136                1: 70                1:112               
-##  behavior_tech_used_4 behavior_tech_used_6 behavior_tech_used_7
-##  0:136                0:173                0: 98               
-##  1: 93                1: 56                1:131               
-##  behavior_tech_used_8 behavior_tech_used_9 behavior_tech_used_10
-##  0:151                0:125                0:119                
-##  1: 78                1:104                1:110                
-##  behavior_tech_used_11 behavior_tech_used_12 behavior_tech_used_13
-##  0:191                 0:139                 0:124                
-##  1: 38                 1: 90                 1:105                
-##  behavior_tech_used_14 behavior_tech_used_15 behavior_tech_used_16
-##  0:165                 0:165                 0:186                
-##  1: 64                 1: 64                 1: 43                
-##  behavior_tech_used_17 behavior_tech_used_18 agg_conf male    behavior_prog_3
-##  0:200                 0:117                 0: 47    0: 74   0:186          
-##  1: 29                 1:112                 1:182    1:155   1: 43          
-##  fear_anxiety reward 
-##  0: 69        0: 34  
-##  1:160        1:195</code></pre>
-<pre class="r"><code>#df_agg &lt;- apply_min_xtab(df_agg)
+
 summary(df_agg)</code></pre>
 <pre><code>##  has_bitten prof_type_3 prof_type_1 prof_type_2 trainer_cred trainer_cpdt
 ##  0:122      0:163       0:139       0:160       0:162        0:193       
@@ -1730,8 +1832,95 @@ summary(df_agg)</code></pre>
 <pre class="r"><code># Fit model to data.
 f &lt;- as.formula(paste0(outcome, &quot;~&quot;, &quot;.&quot;))
 m &lt;- glm(f, data=df_agg, family=&quot;binomial&quot;)
-
-df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+summary(m)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = f, family = &quot;binomial&quot;, data = df_agg)
+## 
+## Deviance Residuals: 
+##      Min        1Q    Median        3Q       Max  
+## -2.33582   0.04149   0.21110   0.56166   1.84160  
+## 
+## Coefficients:
+##                        Estimate Std. Error z value Pr(&gt;|z|)   
+## (Intercept)             0.89603    0.90153   0.994  0.32027   
+## has_bitten1            -0.87801    0.50055  -1.754  0.07942 . 
+## prof_type_31           -0.85900    0.69519  -1.236  0.21660   
+## prof_type_11            0.74630    0.91727   0.814  0.41587   
+## prof_type_21           -2.26432    0.84559  -2.678  0.00741 **
+## trainer_cred1          -2.48057    1.14478  -2.167  0.03025 * 
+## trainer_cpdt1           0.65443    0.96182   0.680  0.49625   
+## consultant_cred1        2.94171    1.14792   2.563  0.01039 * 
+## equipment_11            0.48226    0.53175   0.907  0.36444   
+## equipment_21            3.26021    1.30799   2.493  0.01268 * 
+## equipment_31            1.09035    0.89372   1.220  0.22246   
+## equipment_41            0.41590    0.80588   0.516  0.60579   
+## equipment_51            0.48554    0.69178   0.702  0.48276   
+## equipment_91            0.53741    0.58961   0.911  0.36204   
+## equipment_101          -0.57651    0.87293  -0.660  0.50898   
+## med_list_11             0.60155    0.87919   0.684  0.49384   
+## med_list_131           -0.35625    1.03584  -0.344  0.73090   
+## alt_med_type_151       -0.73073    1.14311  -0.639  0.52267   
+## alt_med_type_161        0.71931    1.15415   0.623  0.53313   
+## behavior_tech_used_11   0.51884    0.57731   0.899  0.36880   
+## behavior_tech_used_21   0.77212    0.66872   1.155  0.24824   
+## behavior_tech_used_31  -0.03336    0.53716  -0.062  0.95048   
+## behavior_tech_used_41  -0.47180    0.56288  -0.838  0.40193   
+## behavior_tech_used_61  -1.00885    0.57841  -1.744  0.08113 . 
+## behavior_tech_used_71  -1.05187    0.56423  -1.864  0.06229 . 
+## behavior_tech_used_81   0.51432    0.69063   0.745  0.45644   
+## behavior_tech_used_91   0.19215    0.64699   0.297  0.76647   
+## behavior_tech_used_101  0.29442    0.56736   0.519  0.60381   
+## behavior_tech_used_111 -0.90362    0.82123  -1.100  0.27119   
+## behavior_tech_used_121 -0.20549    0.58363  -0.352  0.72477   
+## behavior_tech_used_131 -0.02203    0.55243  -0.040  0.96819   
+## behavior_tech_used_141  0.52682    0.80772   0.652  0.51425   
+## behavior_tech_used_151 -0.19072    0.62099  -0.307  0.75875   
+## behavior_tech_used_161  1.17105    0.98817   1.185  0.23599   
+## behavior_tech_used_171  0.69420    0.91597   0.758  0.44852   
+## behavior_tech_used_181  1.88764    0.62358   3.027  0.00247 **
+## male1                  -0.02965    0.50003  -0.059  0.95271   
+## behavior_prog_31        1.97204    1.04204   1.892  0.05843 . 
+## fear_anxiety1          -1.14997    0.52692  -2.182  0.02908 * 
+## reward1                 1.12823    0.71461   1.579  0.11438   
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 232.47  on 228  degrees of freedom
+## Residual deviance: 147.90  on 189  degrees of freedom
+## AIC: 227.9
+## 
+## Number of Fisher Scoring iterations: 7</code></pre>
+<pre class="r"><code>print(vif(m))</code></pre>
+<pre><code>##            has_bitten           prof_type_3           prof_type_1 
+##              1.480870              2.266759              4.799562 
+##           prof_type_2          trainer_cred          trainer_cpdt 
+##              2.989631              6.720047              2.914486 
+##       consultant_cred           equipment_1           equipment_2 
+##              2.595586              1.665938              1.533674 
+##           equipment_3           equipment_4           equipment_5 
+##              1.441679              1.502896              1.660568 
+##           equipment_9          equipment_10            med_list_1 
+##              1.454906              1.614336              2.345085 
+##           med_list_13       alt_med_type_15       alt_med_type_16 
+##              1.490829              2.060467              2.416665 
+##  behavior_tech_used_1  behavior_tech_used_2  behavior_tech_used_3 
+##              1.965163              1.530140              1.671209 
+##  behavior_tech_used_4  behavior_tech_used_6  behavior_tech_used_7 
+##              1.583149              1.553689              1.858966 
+##  behavior_tech_used_8  behavior_tech_used_9 behavior_tech_used_10 
+##              1.676847              2.353519              1.750727 
+## behavior_tech_used_11 behavior_tech_used_12 behavior_tech_used_13 
+##              1.950245              1.732156              1.625151 
+## behavior_tech_used_14 behavior_tech_used_15 behavior_tech_used_16 
+##              1.734192              1.652852              1.885227 
+## behavior_tech_used_17 behavior_tech_used_18                  male 
+##              1.311345              1.892331              1.347223 
+##       behavior_prog_3          fear_anxiety                reward 
+##              2.111300              1.415282              1.826881</code></pre>
+<pre class="r"><code>df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 #df_results$p.value &lt;- p.adjust(df_results$p.value, method=&#39;BH&#39;)
 df_results$sig &lt;- &#39;&#39;
 df_results[df_results$p.value &lt;= .05, &#39;sig&#39;] &lt;- &#39;*&#39;
@@ -2182,6 +2371,7 @@ df_agg &lt;- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes),
     min_cutoff=10)
 df_agg$agg_idh &lt;- as.factor(ifelse(df_agg$agg_idh &lt;= 4, 0, 1))
+
 summary(df_agg)</code></pre>
 <pre><code>##  has_bitten prof_type_3 prof_type_1 prof_type_2 trainer_cred trainer_cpdt
 ##  0:151      0:247       0:216       0:235       0:256        0:290       
@@ -2228,8 +2418,125 @@ summary(df_agg)</code></pre>
 <pre class="r"><code># Fit model to data.
 f &lt;- as.formula(paste0(outcome, &quot;~&quot;, &quot;.&quot;))
 m &lt;- glm(f, data=df_agg, family=&quot;binomial&quot;)
-
-df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+summary(m)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = f, family = &quot;binomial&quot;, data = df_agg)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.0979  -1.0263   0.5258   0.8650   2.1928  
+## 
+## Coefficients:
+##                        Estimate Std. Error z value Pr(&gt;|z|)  
+## (Intercept)             1.41142    0.55345   2.550   0.0108 *
+## has_bitten1             0.14744    0.28268   0.522   0.6020  
+## prof_type_31           -0.67544    0.41000  -1.647   0.0995 .
+## prof_type_11           -0.78509    0.54375  -1.444   0.1488  
+## prof_type_21            0.00305    0.54779   0.006   0.9956  
+## trainer_cred1           0.37578    0.62908   0.597   0.5503  
+## trainer_cpdt1           0.31936    0.58684   0.544   0.5863  
+## consultant_cred1        0.60252    0.69489   0.867   0.3859  
+## consult_cbcc1          -0.09780    0.80789  -0.121   0.9036  
+## consult_cdbc1          -0.84034    0.85009  -0.989   0.3229  
+## consult_caab1          -0.98604    0.68628  -1.437   0.1508  
+## consult_dacvb1          0.05004    0.74833   0.067   0.9467  
+## equipment_11            0.02280    0.28305   0.081   0.9358  
+## equipment_21           -0.15443    0.35627  -0.433   0.6647  
+## equipment_31           -0.20744    0.43777  -0.474   0.6356  
+## equipment_41           -0.26633    0.37067  -0.719   0.4724  
+## equipment_51           -0.30762    0.36555  -0.842   0.4000  
+## equipment_91            0.04501    0.33130   0.136   0.8919  
+## equipment_71            0.82766    0.64626   1.281   0.2003  
+## equipment_101          -0.41403    0.50125  -0.826   0.4088  
+## equipment_81            0.33382    0.57278   0.583   0.5600  
+## med_list_11             0.27632    0.49324   0.560   0.5753  
+## med_list_71            -0.83755    0.58734  -1.426   0.1539  
+## med_list_91             1.35292    0.79140   1.710   0.0874 .
+## med_list_131            0.07509    0.53597   0.140   0.8886  
+## alt_med_type_21         0.41913    0.91161   0.460   0.6457  
+## alt_med_type_31         0.38801    0.79208   0.490   0.6242  
+## alt_med_type_61        -0.38915    0.70571  -0.551   0.5813  
+## alt_med_type_111       -0.12877    0.89805  -0.143   0.8860  
+## alt_med_type_121        0.20247    1.01805   0.199   0.8424  
+## alt_med_type_131        1.34390    0.81946   1.640   0.1010  
+## alt_med_type_151       -0.84918    0.76734  -1.107   0.2684  
+## alt_med_type_161        0.55918    0.75407   0.742   0.4584  
+## behavior_tech_used_11   0.17226    0.30962   0.556   0.5780  
+## behavior_tech_used_21   0.33041    0.36768   0.899   0.3688  
+## behavior_tech_used_31   0.13891    0.31641   0.439   0.6607  
+## behavior_tech_used_41   0.52648    0.31167   1.689   0.0912 .
+## behavior_tech_used_61  -0.54361    0.33680  -1.614   0.1065  
+## behavior_tech_used_71  -0.73636    0.30453  -2.418   0.0156 *
+## behavior_tech_used_81  -0.36099    0.34278  -1.053   0.2923  
+## behavior_tech_used_91   0.37596    0.36676   1.025   0.3053  
+## behavior_tech_used_101  0.60406    0.33001   1.830   0.0672 .
+## behavior_tech_used_111 -0.40569    0.40950  -0.991   0.3218  
+## behavior_tech_used_121 -0.57819    0.31962  -1.809   0.0705 .
+## behavior_tech_used_131  0.03126    0.32789   0.095   0.9240  
+## behavior_tech_used_141  0.82924    0.37247   2.226   0.0260 *
+## behavior_tech_used_151 -0.49474    0.35693  -1.386   0.1657  
+## behavior_tech_used_161 -0.37720    0.40742  -0.926   0.3545  
+## behavior_tech_used_171  0.47131    0.51897   0.908   0.3638  
+## behavior_tech_used_181  0.48507    0.30783   1.576   0.1151  
+## behavior_tech_used_191 -0.97074    0.71923  -1.350   0.1771  
+## male1                   0.05300    0.27613   0.192   0.8478  
+## behavior_prog_11        0.72076    0.65390   1.102   0.2704  
+## behavior_prog_21        0.15581    0.57988   0.269   0.7882  
+## behavior_prog_31        0.38553    0.51633   0.747   0.4553  
+## behavior_prog_41        1.72844    0.95693   1.806   0.0709 .
+## fear_anxiety1          -0.64182    0.29897  -2.147   0.0318 *
+## reward1                -0.69096    0.38770  -1.782   0.0747 .
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 453.29  on 339  degrees of freedom
+## Residual deviance: 377.84  on 282  degrees of freedom
+## AIC: 493.84
+## 
+## Number of Fisher Scoring iterations: 5</code></pre>
+<pre class="r"><code>print(vif(m))</code></pre>
+<pre><code>##            has_bitten           prof_type_3           prof_type_1 
+##              1.262735              2.085946              4.415495 
+##           prof_type_2          trainer_cred          trainer_cpdt 
+##              3.931034              4.804605              2.685795 
+##       consultant_cred          consult_cbcc          consult_cdbc 
+##              4.953138              1.920035              2.002676 
+##          consult_caab         consult_dacvb           equipment_1 
+##              2.095531              1.901825              1.280751 
+##           equipment_2           equipment_3           equipment_4 
+##              1.364878              1.504149              1.358604 
+##           equipment_5           equipment_9           equipment_7 
+##              1.633154              1.310703              1.403907 
+##          equipment_10           equipment_8            med_list_1 
+##              1.520755              1.194801              1.848226 
+##            med_list_7            med_list_9           med_list_13 
+##              1.587413              1.467275              1.485808 
+##        alt_med_type_2        alt_med_type_3        alt_med_type_6 
+##              2.147936              1.683691              1.804606 
+##       alt_med_type_11       alt_med_type_12       alt_med_type_13 
+##              2.333860              1.716733              2.044844 
+##       alt_med_type_15       alt_med_type_16  behavior_tech_used_1 
+##              2.709273              2.479061              1.533607 
+##  behavior_tech_used_2  behavior_tech_used_3  behavior_tech_used_4 
+##              1.505511              1.556916              1.460855 
+##  behavior_tech_used_6  behavior_tech_used_7  behavior_tech_used_8 
+##              1.357589              1.440309              1.639898 
+##  behavior_tech_used_9 behavior_tech_used_10 behavior_tech_used_11 
+##              2.096331              1.603532              1.607132 
+## behavior_tech_used_12 behavior_tech_used_13 behavior_tech_used_14 
+##              1.413585              1.648353              1.647556 
+## behavior_tech_used_15 behavior_tech_used_16 behavior_tech_used_17 
+##              1.537303              1.959293              1.202752 
+## behavior_tech_used_18 behavior_tech_used_19                  male 
+##              1.508311              1.197468              1.221286 
+##       behavior_prog_1       behavior_prog_2       behavior_prog_3 
+##              1.390537              1.396685              1.851298 
+##       behavior_prog_4          fear_anxiety                reward 
+##              1.226106              1.321702              1.458725</code></pre>
+<pre class="r"><code>df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 #df_results$p.value &lt;- p.adjust(df_results$p.value, method=&#39;BH&#39;)
 df_results$sig &lt;- &#39;&#39;
 df_results[df_results$p.value &lt;= .05, &#39;sig&#39;] &lt;- &#39;*&#39;
@@ -2860,6 +3167,7 @@ df_agg &lt;- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes),
     min_cutoff=10)
 df_agg$agg_ext_ppl &lt;- as.factor(ifelse(df_agg$agg_ext_ppl &lt;= 4, 0, 1))
+
 summary(df_agg)</code></pre>
 <pre><code>##  has_bitten prof_type_3 prof_type_1 prof_type_2 trainer_cred trainer_cpdt
 ##  0:285      0:340       0:269       0:326       0:325        0:377       
@@ -2906,8 +3214,133 @@ summary(df_agg)</code></pre>
 <pre class="r"><code># Fit model to data.
 f &lt;- as.formula(paste0(outcome, &quot;~&quot;, &quot;.&quot;))
 m &lt;- glm(f, data=df_agg, family=&quot;binomial&quot;)
-
-df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+summary(m)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = f, family = &quot;binomial&quot;, data = df_agg)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.5795  -1.0533   0.5492   0.8375   2.4314  
+## 
+## Coefficients:
+##                         Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)             0.374508   0.490586   0.763 0.445231    
+## has_bitten1            -0.065988   0.250094  -0.264 0.791893    
+## prof_type_31           -0.402682   0.367791  -1.095 0.273575    
+## prof_type_11           -0.272866   0.406057  -0.672 0.501591    
+## prof_type_21           -0.068627   0.447025  -0.154 0.877989    
+## trainer_cred1           0.345303   0.498304   0.693 0.488338    
+## trainer_cpdt1           0.203428   0.469368   0.433 0.664718    
+## consultant_cred1        0.048177   0.595685   0.081 0.935540    
+## consult_cbcc1          -0.438624   0.582087  -0.754 0.451127    
+## consult_cdbc1           0.107737   0.617789   0.174 0.861558    
+## consult_caab1           0.004416   0.603870   0.007 0.994165    
+## consult_dacvb1         -0.736725   0.595155  -1.238 0.215764    
+## equipment_11            0.010575   0.248633   0.043 0.966073    
+## equipment_21            0.093763   0.313359   0.299 0.764773    
+## equipment_31           -0.162240   0.395509  -0.410 0.681655    
+## equipment_41            0.051776   0.312839   0.166 0.868548    
+## equipment_51           -0.100884   0.288777  -0.349 0.726828    
+## equipment_91           -0.359639   0.259108  -1.388 0.165141    
+## equipment_71            0.106814   0.551542   0.194 0.846439    
+## equipment_101          -0.517863   0.386655  -1.339 0.180460    
+## equipment_81            0.679185   0.568780   1.194 0.232435    
+## med_list_11             0.003096   0.401033   0.008 0.993841    
+## med_list_71            -0.126475   0.451395  -0.280 0.779335    
+## med_list_91             0.405930   0.603759   0.672 0.501368    
+## med_list_101            1.769168   1.116902   1.584 0.113195    
+## med_list_131           -0.464139   0.479103  -0.969 0.332661    
+## alt_med_type_11         0.107569   0.885150   0.122 0.903274    
+## alt_med_type_21         0.321193   0.807828   0.398 0.690924    
+## alt_med_type_31         0.045717   0.573564   0.080 0.936471    
+## alt_med_type_41         0.346213   0.977414   0.354 0.723179    
+## alt_med_type_61        -0.963676   0.595798  -1.617 0.105781    
+## alt_med_type_111       -0.981602   0.649737  -1.511 0.130847    
+## alt_med_type_121        0.096130   0.677379   0.142 0.887147    
+## alt_med_type_131        1.015710   0.584602   1.737 0.082310 .  
+## alt_med_type_151       -0.687983   0.548921  -1.253 0.210083    
+## alt_med_type_161        1.092694   0.577894   1.891 0.058648 .  
+## behavior_tech_used_11   0.071635   0.285326   0.251 0.801765    
+## behavior_tech_used_21   0.366737   0.305370   1.201 0.229768    
+## behavior_tech_used_31  -0.121899   0.272204  -0.448 0.654281    
+## behavior_tech_used_41   1.029913   0.268946   3.829 0.000128 ***
+## behavior_tech_used_51  -0.062107   0.736075  -0.084 0.932758    
+## behavior_tech_used_61  -0.214620   0.286931  -0.748 0.454470    
+## behavior_tech_used_71  -0.123506   0.259732  -0.476 0.634422    
+## behavior_tech_used_81  -0.241615   0.289319  -0.835 0.403653    
+## behavior_tech_used_91  -0.052064   0.296579  -0.176 0.860649    
+## behavior_tech_used_101 -0.034589   0.287856  -0.120 0.904356    
+## behavior_tech_used_111  0.664250   0.401941   1.653 0.098411 .  
+## behavior_tech_used_121 -0.264808   0.273944  -0.967 0.333720    
+## behavior_tech_used_131 -0.046682   0.283598  -0.165 0.869254    
+## behavior_tech_used_141  0.805303   0.332202   2.424 0.015345 *  
+## behavior_tech_used_151 -0.177013   0.319877  -0.553 0.580003    
+## behavior_tech_used_161  0.014898   0.350237   0.043 0.966071    
+## behavior_tech_used_171  0.039618   0.384205   0.103 0.917871    
+## behavior_tech_used_181  0.543653   0.256805   2.117 0.034261 *  
+## behavior_tech_used_191  0.850938   0.575536   1.479 0.139270    
+## male1                   0.054398   0.244200   0.223 0.823722    
+## behavior_prog_11       -0.052204   0.599021  -0.087 0.930553    
+## behavior_prog_21        0.503229   0.468050   1.075 0.282303    
+## behavior_prog_31        0.220928   0.399927   0.552 0.580660    
+## pain1                  -0.451203   0.885165  -0.510 0.610235    
+## fear_anxiety1           0.028655   0.256542   0.112 0.911063    
+## reward1                 0.002648   0.337790   0.008 0.993745    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 572.51  on 469  degrees of freedom
+## Residual deviance: 495.68  on 408  degrees of freedom
+## AIC: 619.68
+## 
+## Number of Fisher Scoring iterations: 5</code></pre>
+<pre class="r"><code>print(vif(m))</code></pre>
+<pre><code>##            has_bitten           prof_type_3           prof_type_1 
+##              1.254778              2.245322              3.335254 
+##           prof_type_2          trainer_cred          trainer_cpdt 
+##              3.543229              4.259169              2.693173 
+##       consultant_cred          consult_cbcc          consult_cdbc 
+##              5.080753              1.991186              1.559080 
+##          consult_caab         consult_dacvb           equipment_1 
+##              1.606519              2.114615              1.271805 
+##           equipment_2           equipment_3           equipment_4 
+##              1.268679              1.427730              1.359945 
+##           equipment_5           equipment_9           equipment_7 
+##              1.487194              1.175277              1.320942 
+##          equipment_10           equipment_8            med_list_1 
+##              1.545710              1.159515              1.821639 
+##            med_list_7            med_list_9           med_list_10 
+##              1.513974              1.442520              1.561916 
+##           med_list_13        alt_med_type_1        alt_med_type_2 
+##              1.600793              1.447868              1.729016 
+##        alt_med_type_3        alt_med_type_4        alt_med_type_6 
+##              1.578208              1.381536              2.283838 
+##       alt_med_type_11       alt_med_type_12       alt_med_type_13 
+##              2.178729              1.501933              1.772493 
+##       alt_med_type_15       alt_med_type_16  behavior_tech_used_1 
+##              2.062925              2.328622              1.682379 
+##  behavior_tech_used_2  behavior_tech_used_3  behavior_tech_used_4 
+##              1.443349              1.519422              1.367951 
+##  behavior_tech_used_5  behavior_tech_used_6  behavior_tech_used_7 
+##              1.230691              1.260774              1.346676 
+##  behavior_tech_used_8  behavior_tech_used_9 behavior_tech_used_10 
+##              1.523850              1.752899              1.624407 
+## behavior_tech_used_11 behavior_tech_used_12 behavior_tech_used_13 
+##              1.430601              1.349813              1.599340 
+## behavior_tech_used_14 behavior_tech_used_15 behavior_tech_used_16 
+##              1.502562              1.523626              1.681394 
+## behavior_tech_used_17 behavior_tech_used_18 behavior_tech_used_19 
+##              1.165707              1.368268              1.130533 
+##                  male       behavior_prog_1       behavior_prog_2 
+##              1.167759              1.331031              1.387179 
+##       behavior_prog_3                  pain          fear_anxiety 
+##              1.835501              1.441082              1.184062 
+##                reward 
+##              1.502442</code></pre>
+<pre class="r"><code>df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 #df_results$p.value &lt;- p.adjust(df_results$p.value, method=&#39;BH&#39;)
 df_results$sig &lt;- &#39;&#39;
 df_results[df_results$p.value &lt;= .05, &#39;sig&#39;] &lt;- &#39;*&#39;
@@ -3578,6 +4011,7 @@ df_agg &lt;- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes),
     min_cutoff=10)
 df_agg$agg_ext_dog &lt;- as.factor(ifelse(df_agg$agg_ext_dog &lt;= 4, 0, 1))
+
 summary(df_agg)</code></pre>
 <pre><code>##  has_bitten prof_type_3 prof_type_1 prof_type_2 trainer_cred trainer_cpdt
 ##  0:444      0:532       0:379       0:469       0:463        0:551       
@@ -3627,8 +4061,135 @@ summary(df_agg)</code></pre>
 <pre class="r"><code># Fit model to data.
 f &lt;- as.formula(paste0(outcome, &quot;~&quot;, &quot;.&quot;))
 m &lt;- glm(f, data=df_agg, family=&quot;binomial&quot;)
-
-df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+summary(m)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = f, family = &quot;binomial&quot;, data = df_agg)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.3910  -1.0286   0.5447   0.8590   1.9570  
+## 
+## Coefficients:
+##                         Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)             0.024480   0.394190   0.062  0.95048    
+## has_bitten1            -0.301379   0.199625  -1.510  0.13111    
+## prof_type_31           -0.073235   0.311488  -0.235  0.81412    
+## prof_type_11           -0.285012   0.325598  -0.875  0.38138    
+## prof_type_21            0.864043   0.375901   2.299  0.02153 *  
+## trainer_cred1           0.364591   0.387530   0.941  0.34680    
+## trainer_cpdt1          -0.398632   0.363543  -1.097  0.27285    
+## consultant_cred1       -0.107065   0.489671  -0.219  0.82693    
+## consult_cbcc1          -0.575673   0.469448  -1.226  0.22009    
+## consult_cdbc1           0.175283   0.530246   0.331  0.74097    
+## consult_caab1          -0.222037   0.498562  -0.445  0.65606    
+## consult_dacvb1         -1.344344   0.526538  -2.553  0.01067 *  
+## equipment_11           -0.171769   0.197288  -0.871  0.38394    
+## equipment_21            0.153929   0.237341   0.649  0.51662    
+## equipment_31            0.866900   0.318631   2.721  0.00651 ** 
+## equipment_41            0.309196   0.238724   1.295  0.19525    
+## equipment_51           -0.034566   0.219924  -0.157  0.87511    
+## equipment_91            0.306200   0.218980   1.398  0.16202    
+## equipment_61           -0.963188   0.711074  -1.355  0.17556    
+## equipment_71            0.023595   0.442379   0.053  0.95746    
+## equipment_101          -0.672625   0.330465  -2.035  0.04181 *  
+## equipment_81            0.399926   0.461278   0.867  0.38594    
+## med_list_11            -0.480445   0.341113  -1.408  0.15899    
+## med_list_71            -0.020684   0.440335  -0.047  0.96253    
+## med_list_91             0.203685   0.528792   0.385  0.70010    
+## med_list_101            0.270994   0.810620   0.334  0.73815    
+## med_list_131           -0.214281   0.387582  -0.553  0.58036    
+## alt_med_type_11        -0.013258   0.782819  -0.017  0.98649    
+## alt_med_type_21        -0.245533   0.627135  -0.392  0.69542    
+## alt_med_type_31         0.287867   0.468782   0.614  0.53917    
+## alt_med_type_41         1.960787   1.142024   1.717  0.08599 .  
+## alt_med_type_61        -0.687160   0.516615  -1.330  0.18348    
+## alt_med_type_111        0.080022   0.528427   0.151  0.87963    
+## alt_med_type_121       -0.130618   0.585280  -0.223  0.82340    
+## alt_med_type_131       -0.312098   0.453679  -0.688  0.49150    
+## alt_med_type_151       -0.175666   0.456504  -0.385  0.70038    
+## alt_med_type_161        0.550385   0.478236   1.151  0.24979    
+## alt_med_type_181       -0.653040   0.793732  -0.823  0.41065    
+## behavior_tech_used_11  -0.133680   0.219363  -0.609  0.54226    
+## behavior_tech_used_21   0.602789   0.233016   2.587  0.00968 ** 
+## behavior_tech_used_31  -0.062085   0.206707  -0.300  0.76391    
+## behavior_tech_used_41   0.868750   0.212150   4.095 4.22e-05 ***
+## behavior_tech_used_61  -0.566542   0.232599  -2.436  0.01486 *  
+## behavior_tech_used_71   0.063082   0.209282   0.301  0.76309    
+## behavior_tech_used_81  -0.293065   0.229913  -1.275  0.20242    
+## behavior_tech_used_91   0.357301   0.232601   1.536  0.12451    
+## behavior_tech_used_101 -0.137402   0.219944  -0.625  0.53216    
+## behavior_tech_used_111  0.740313   0.298117   2.483  0.01302 *  
+## behavior_tech_used_121 -0.183254   0.215693  -0.850  0.39554    
+## behavior_tech_used_131  0.331871   0.218031   1.522  0.12798    
+## behavior_tech_used_141  0.235651   0.253876   0.928  0.35330    
+## behavior_tech_used_151  0.046241   0.251970   0.184  0.85439    
+## behavior_tech_used_161 -0.005387   0.268658  -0.020  0.98400    
+## behavior_tech_used_171 -0.457107   0.321175  -1.423  0.15467    
+## behavior_tech_used_181  0.280968   0.204648   1.373  0.16977    
+## behavior_tech_used_191  0.212176   0.441398   0.481  0.63074    
+## male1                   0.032977   0.190008   0.174  0.86222    
+## behavior_prog_11        0.326181   0.474404   0.688  0.49173    
+## behavior_prog_21        0.188178   0.399127   0.471  0.63730    
+## behavior_prog_31        0.037853   0.303113   0.125  0.90062    
+## behavior_prog_41        0.283000   0.576417   0.491  0.62345    
+## pain1                  -1.121111   0.792323  -1.415  0.15708    
+## fear_anxiety1          -0.245103   0.200324  -1.224  0.22113    
+## reward1                 0.113412   0.271163   0.418  0.67577    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 875.95  on 686  degrees of freedom
+## Residual deviance: 746.93  on 623  degrees of freedom
+## AIC: 874.93
+## 
+## Number of Fisher Scoring iterations: 5</code></pre>
+<pre class="r"><code>print(vif(m))</code></pre>
+<pre><code>##            has_bitten           prof_type_3           prof_type_1 
+##              1.169774              2.124033              3.281378 
+##           prof_type_2          trainer_cred          trainer_cpdt 
+##              3.604228              4.014948              2.550151 
+##       consultant_cred          consult_cbcc          consult_cdbc 
+##              4.897908              1.799088              1.393510 
+##          consult_caab         consult_dacvb           equipment_1 
+##              1.556982              1.797494              1.216592 
+##           equipment_2           equipment_3           equipment_4 
+##              1.231611              1.389120              1.234214 
+##           equipment_5           equipment_9           equipment_6 
+##              1.336946              1.187455              1.152667 
+##           equipment_7          equipment_10           equipment_8 
+##              1.216501              1.380350              1.145423 
+##            med_list_1            med_list_7            med_list_9 
+##              1.844235              1.501822              1.503404 
+##           med_list_10           med_list_13        alt_med_type_1 
+##              1.565030              1.324102              1.467721 
+##        alt_med_type_2        alt_med_type_3        alt_med_type_4 
+##              1.965429              1.392129              1.153816 
+##        alt_med_type_6       alt_med_type_11       alt_med_type_12 
+##              2.419886              1.958632              1.792493 
+##       alt_med_type_13       alt_med_type_15       alt_med_type_16 
+##              1.850495              2.333158              2.253149 
+##       alt_med_type_18  behavior_tech_used_1  behavior_tech_used_2 
+##              1.517083              1.489926              1.313225 
+##  behavior_tech_used_3  behavior_tech_used_4  behavior_tech_used_6 
+##              1.325473              1.367017              1.295704 
+##  behavior_tech_used_7  behavior_tech_used_8  behavior_tech_used_9 
+##              1.354070              1.507273              1.656202 
+## behavior_tech_used_10 behavior_tech_used_11 behavior_tech_used_12 
+##              1.482975              1.399871              1.248030 
+## behavior_tech_used_13 behavior_tech_used_14 behavior_tech_used_15 
+##              1.481048              1.530529              1.508522 
+## behavior_tech_used_16 behavior_tech_used_17 behavior_tech_used_18 
+##              1.565960              1.218925              1.318856 
+## behavior_tech_used_19                  male       behavior_prog_1 
+##              1.123959              1.124088              1.244948 
+##       behavior_prog_2       behavior_prog_3       behavior_prog_4 
+##              1.235433              1.681738              1.195073 
+##                  pain          fear_anxiety                reward 
+##              1.312593              1.171765              1.385340</code></pre>
+<pre class="r"><code>df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 #df_results$p.value &lt;- p.adjust(df_results$p.value, method=&#39;BH&#39;)
 df_results$sig &lt;- &#39;&#39;
 df_results[df_results$p.value &lt;= .05, &#39;sig&#39;] &lt;- &#39;*&#39;
@@ -4319,19 +4880,23 @@ df_agg &lt;- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes),
     min_cutoff=10)
 df_agg$agg_pred &lt;- as.factor(ifelse(df_agg$agg_pred &lt;= 4, 0, 1))
+
+# Collinearity adjustments.
+df_agg &lt;- subset(df_agg, select=-consultant_cred) # VIF 12.67
+
 summary(df_agg)</code></pre>
 <pre><code>##  has_bitten prof_type_3 prof_type_1 prof_type_2 trainer_cred trainer_cpdt
 ##  0:68       0:94        0:80        0:91        0:99         0:112       
 ##  1:66       1:40        1:54        1:43        1:35         1: 22       
-##  consultant_cred consult_cbcc consult_cdbc equipment_1 equipment_2 equipment_3
-##  0:101           0:122        0:124        0:73        0:99        0:118      
-##  1: 33           1: 12        1: 10        1:61        1:35        1: 16      
-##  equipment_4 equipment_5 equipment_9 equipment_10 med_list_1 med_list_7
-##  0:104       0:85        0:90        0:115        0:115      0:119     
-##  1: 30       1:49        1:44        1: 19        1: 19      1: 15     
-##  med_list_13 alt_med_type_6 alt_med_type_11 alt_med_type_15 alt_med_type_16
-##  0:120       0:120          0:122           0:120           0:118          
-##  1: 14       1: 14          1: 12           1: 14           1: 16          
+##  consult_cbcc consult_cdbc equipment_1 equipment_2 equipment_3 equipment_4
+##  0:122        0:124        0:73        0:99        0:118       0:104      
+##  1: 12        1: 10        1:61        1:35        1: 16       1: 30      
+##  equipment_5 equipment_9 equipment_10 med_list_1 med_list_7 med_list_13
+##  0:85        0:90        0:115        0:115      0:119      0:120      
+##  1:49        1:44        1: 19        1: 19      1: 15      1: 14      
+##  alt_med_type_6 alt_med_type_11 alt_med_type_15 alt_med_type_16
+##  0:120          0:122           0:120           0:118          
+##  1: 14          1: 12           1: 14           1: 16          
 ##  behavior_tech_used_1 behavior_tech_used_2 behavior_tech_used_3
 ##  0:49                 0:86                 0:55                
 ##  1:85                 1:48                 1:79                
@@ -4356,8 +4921,104 @@ summary(df_agg)</code></pre>
 <pre class="r"><code># Fit model to data.
 f &lt;- as.formula(paste0(outcome, &quot;~&quot;, &quot;.&quot;))
 m &lt;- glm(f, data=df_agg, family=&quot;binomial&quot;)
-
-df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
+summary(m)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = f, family = &quot;binomial&quot;, data = df_agg)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.8818  -0.8435  -0.1229   0.8520   2.6596  
+## 
+## Coefficients:
+##                        Estimate Std. Error z value Pr(&gt;|z|)   
+## (Intercept)             0.54189    1.03093   0.526  0.59914   
+## has_bitten1             0.02084    0.55032   0.038  0.96980   
+## prof_type_31           -0.47391    0.69945  -0.678  0.49806   
+## prof_type_11           -1.42692    0.89428  -1.596  0.11057   
+## prof_type_21            0.41164    0.81992   0.502  0.61564   
+## trainer_cred1           2.90881    1.25733   2.313  0.02070 * 
+## trainer_cpdt1          -0.62320    1.13898  -0.547  0.58427   
+## consult_cbcc1          -0.86197    1.25750  -0.685  0.49305   
+## consult_cdbc1          -0.69584    1.15286  -0.604  0.54612   
+## equipment_11            0.55406    0.55097   1.006  0.31460   
+## equipment_21           -0.34259    0.67576  -0.507  0.61218   
+## equipment_31            0.78279    0.84902   0.922  0.35653   
+## equipment_41            0.19197    0.66236   0.290  0.77194   
+## equipment_51           -0.90271    0.61372  -1.471  0.14132   
+## equipment_91           -0.55006    0.55538  -0.990  0.32197   
+## equipment_101          -0.49027    0.74291  -0.660  0.50930   
+## med_list_11            -0.62466    1.02376  -0.610  0.54175   
+## med_list_71             0.64156    1.09450   0.586  0.55776   
+## med_list_131           -0.43708    1.04427  -0.419  0.67555   
+## alt_med_type_61         0.33192    1.35595   0.245  0.80662   
+## alt_med_type_111       -1.52560    1.74346  -0.875  0.38155   
+## alt_med_type_151       -2.06061    1.60649  -1.283  0.19960   
+## alt_med_type_161        2.24869    1.81858   1.237  0.21627   
+## behavior_tech_used_11  -0.16558    0.59677  -0.277  0.78142   
+## behavior_tech_used_21  -0.39917    0.58887  -0.678  0.49786   
+## behavior_tech_used_31   0.93795    0.57173   1.641  0.10089   
+## behavior_tech_used_41   0.71365    0.55326   1.290  0.19709   
+## behavior_tech_used_61  -2.08529    0.65006  -3.208  0.00134 **
+## behavior_tech_used_71  -0.43311    0.60145  -0.720  0.47146   
+## behavior_tech_used_81   0.38179    0.64248   0.594  0.55235   
+## behavior_tech_used_91   0.70153    0.94786   0.740  0.45923   
+## behavior_tech_used_101  0.48322    0.66016   0.732  0.46418   
+## behavior_tech_used_111  0.09704    0.75367   0.129  0.89755   
+## behavior_tech_used_121 -0.75596    0.65534  -1.154  0.24869   
+## behavior_tech_used_131  0.53246    0.63473   0.839  0.40154   
+## behavior_tech_used_141  1.32911    0.64960   2.046  0.04075 * 
+## behavior_tech_used_151 -0.21109    0.81999  -0.257  0.79684   
+## behavior_tech_used_161 -0.32280    0.84564  -0.382  0.70266   
+## behavior_tech_used_171 -1.14953    0.75986  -1.513  0.13032   
+## behavior_tech_used_181 -0.40474    0.56763  -0.713  0.47582   
+## male1                  -0.12379    0.54192  -0.228  0.81931   
+## behavior_prog_11       -0.76012    1.03479  -0.735  0.46260   
+## behavior_prog_31       -0.63100    1.16910  -0.540  0.58938   
+## fear_anxiety1          -0.89349    0.61087  -1.463  0.14356   
+## reward1                 0.07607    0.76301   0.100  0.92059   
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 185.49  on 133  degrees of freedom
+## Residual deviance: 137.62  on  89  degrees of freedom
+## AIC: 227.62
+## 
+## Number of Fisher Scoring iterations: 6</code></pre>
+<pre class="r"><code>print(vif(m))</code></pre>
+<pre><code>##            has_bitten           prof_type_3           prof_type_1 
+##              1.752712              2.165450              4.257003 
+##           prof_type_2          trainer_cred          trainer_cpdt 
+##              3.213214              7.124083              4.262665 
+##          consult_cbcc          consult_cdbc           equipment_1 
+##              2.726882              2.549625              1.756868 
+##           equipment_2           equipment_3           equipment_4 
+##              1.933989              1.660381              1.760142 
+##           equipment_5           equipment_9          equipment_10 
+##              1.936960              1.604760              1.596385 
+##            med_list_1            med_list_7           med_list_13 
+##              2.501872              2.799979              2.136351 
+##        alt_med_type_6       alt_med_type_11       alt_med_type_15 
+##              3.309685              5.216790              3.618298 
+##       alt_med_type_16  behavior_tech_used_1  behavior_tech_used_2 
+##              8.360272              1.934097              1.809563 
+##  behavior_tech_used_3  behavior_tech_used_4  behavior_tech_used_6 
+##              1.816980              1.742666              1.776373 
+##  behavior_tech_used_7  behavior_tech_used_8  behavior_tech_used_9 
+##              2.008143              2.295766              4.807121 
+## behavior_tech_used_10 behavior_tech_used_11 behavior_tech_used_12 
+##              2.517487              1.899046              2.032383 
+## behavior_tech_used_13 behavior_tech_used_14 behavior_tech_used_15 
+##              2.195725              1.886609              2.877267 
+## behavior_tech_used_16 behavior_tech_used_17 behavior_tech_used_18 
+##              2.686727              1.714083              1.855065 
+##                  male       behavior_prog_1       behavior_prog_3 
+##              1.660220              1.712671              3.937832 
+##          fear_anxiety                reward 
+##              2.090964              1.783788</code></pre>
+<pre class="r"><code>df_results &lt;- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 #df_results$p.value &lt;- p.adjust(df_results$p.value, method=&#39;BH&#39;)
 df_results$sig &lt;- &#39;&#39;
 df_results[df_results$p.value &lt;= .05, &#39;sig&#39;] &lt;- &#39;*&#39;
@@ -4397,462 +5058,452 @@ knitr::kable(df_results)</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left">(Intercept)</td>
-<td align="right">2.1184938</td>
-<td align="right">1.0704866</td>
-<td align="right">0.7012749</td>
-<td align="right">0.4831315</td>
-<td align="right">0.2701945</td>
-<td align="right">18.7663431</td>
+<td align="right">1.7192527</td>
+<td align="right">1.0309266</td>
+<td align="right">0.5256336</td>
+<td align="right">0.5991428</td>
+<td align="right">0.2327924</td>
+<td align="right">13.8730653</td>
 <td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left">has_bitten1</td>
-<td align="right">0.9878608</td>
-<td align="right">0.5530927</td>
-<td align="right">-0.0220821</td>
-<td align="right">0.9823824</td>
-<td align="right">0.3332386</td>
-<td align="right">2.9708307</td>
+<td align="right">1.0210561</td>
+<td align="right">0.5503242</td>
+<td align="right">0.0378640</td>
+<td align="right">0.9697961</td>
+<td align="right">0.3468381</td>
+<td align="right">3.0594869</td>
 <td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="left">prof_type_31</td>
-<td align="right">0.5803416</td>
-<td align="right">0.7145188</td>
-<td align="right">-0.7615451</td>
-<td align="right">0.4463316</td>
-<td align="right">0.1354039</td>
-<td align="right">2.3248213</td>
+<td align="right">0.6225605</td>
+<td align="right">0.6994548</td>
+<td align="right">-0.6775483</td>
+<td align="right">0.4980581</td>
+<td align="right">0.1505008</td>
+<td align="right">2.4404992</td>
 <td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left">prof_type_11</td>
-<td align="right">0.3092624</td>
-<td align="right">0.9385306</td>
-<td align="right">-1.2504283</td>
-<td align="right">0.2111431</td>
-<td align="right">0.0453367</td>
-<td align="right">1.9008872</td>
+<td align="right">0.2400470</td>
+<td align="right">0.8942758</td>
+<td align="right">-1.5956155</td>
+<td align="right">0.1105747</td>
+<td align="right">0.0377736</td>
+<td align="right">1.3323717</td>
 <td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="left">prof_type_21</td>
-<td align="right">0.6256788</td>
-<td align="right">1.2806078</td>
-<td align="right">-0.3661684</td>
-<td align="right">0.7142394</td>
-<td align="right">0.0452834</td>
-<td align="right">7.2822675</td>
+<td align="right">1.5092838</td>
+<td align="right">0.8199180</td>
+<td align="right">0.5020444</td>
+<td align="right">0.6156363</td>
+<td align="right">0.3059295</td>
+<td align="right">8.0280698</td>
 <td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left">trainer_cred1</td>
-<td align="right">14.6316483</td>
-<td align="right">1.2705207</td>
-<td align="right">2.1118798</td>
-<td align="right">0.0346968</td>
-<td align="right">1.3604700</td>
-<td align="right">212.8433062</td>
+<td align="right">18.3349192</td>
+<td align="right">1.2573297</td>
+<td align="right">2.3134803</td>
+<td align="right">0.0206962</td>
+<td align="right">1.7619548</td>
+<td align="right">261.0561542</td>
 <td align="left">*</td>
 </tr>
 <tr class="odd">
 <td align="left">trainer_cpdt1</td>
-<td align="right">0.6658967</td>
-<td align="right">1.1455922</td>
-<td align="right">-0.3549437</td>
-<td align="right">0.7226318</td>
-<td align="right">0.0632375</td>
-<td align="right">6.0667315</td>
+<td align="right">0.5362251</td>
+<td align="right">1.1389762</td>
+<td align="right">-0.5471591</td>
+<td align="right">0.5842695</td>
+<td align="right">0.0519729</td>
+<td align="right">4.8152896</td>
 <td align="left"></td>
 </tr>
 <tr class="even">
-<td align="left">consultant_cred1</td>
-<td align="right">4.8715925</td>
-<td align="right">1.7266465</td>
-<td align="right">0.9170498</td>
-<td align="right">0.3591165</td>
-<td align="right">0.1838005</td>
-<td align="right">171.5674168</td>
-<td align="left"></td>
-</tr>
-<tr class="odd">
 <td align="left">consult_cbcc1</td>
-<td align="right">0.2886389</td>
-<td align="right">1.3489863</td>
-<td align="right">-0.9211205</td>
-<td align="right">0.3569875</td>
-<td align="right">0.0179671</td>
-<td align="right">3.8344573</td>
+<td align="right">0.4223284</td>
+<td align="right">1.2574996</td>
+<td align="right">-0.6854651</td>
+<td align="right">0.4930505</td>
+<td align="right">0.0328031</td>
+<td align="right">4.9102069</td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">consult_cdbc1</td>
-<td align="right">0.2812403</td>
-<td align="right">1.3372653</td>
-<td align="right">-0.9486120</td>
-<td align="right">0.3428180</td>
-<td align="right">0.0178232</td>
-<td align="right">3.4890158</td>
+<td align="right">0.4986554</td>
+<td align="right">1.1528588</td>
+<td align="right">-0.6035778</td>
+<td align="right">0.5461244</td>
+<td align="right">0.0461635</td>
+<td align="right">4.5507383</td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">equipment_11</td>
-<td align="right">1.7059453</td>
-<td align="right">0.5551923</td>
-<td align="right">0.9620439</td>
-<td align="right">0.3360275</td>
-<td align="right">0.5770466</td>
-<td align="right">5.2010488</td>
+<td align="right">1.7403126</td>
+<td align="right">0.5509655</td>
+<td align="right">1.0056252</td>
+<td align="right">0.3145959</td>
+<td align="right">0.5941157</td>
+<td align="right">5.2651524</td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">equipment_21</td>
-<td align="right">0.5864396</td>
-<td align="right">0.7065501</td>
-<td align="right">-0.7553401</td>
-<td align="right">0.4500450</td>
-<td align="right">0.1410941</td>
-<td align="right">2.3315187</td>
+<td align="right">0.7099315</td>
+<td align="right">0.6757568</td>
+<td align="right">-0.5069677</td>
+<td align="right">0.6121775</td>
+<td align="right">0.1821177</td>
+<td align="right">2.6638365</td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">equipment_31</td>
-<td align="right">2.0588482</td>
-<td align="right">0.8622243</td>
-<td align="right">0.8375393</td>
-<td align="right">0.4022895</td>
-<td align="right">0.3774646</td>
-<td align="right">11.7142416</td>
+<td align="right">2.1875675</td>
+<td align="right">0.8490219</td>
+<td align="right">0.9219906</td>
+<td align="right">0.3565335</td>
+<td align="right">0.4119674</td>
+<td align="right">12.1148181</td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">equipment_41</td>
-<td align="right">1.5283349</td>
-<td align="right">0.7177870</td>
-<td align="right">0.5909537</td>
-<td align="right">0.5545515</td>
-<td align="right">0.3736700</td>
-<td align="right">6.4265690</td>
+<td align="right">1.2116386</td>
+<td align="right">0.6623573</td>
+<td align="right">0.2898340</td>
+<td align="right">0.7719432</td>
+<td align="right">0.3242249</td>
+<td align="right">4.4858384</td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">equipment_51</td>
-<td align="right">0.4123079</td>
-<td align="right">0.6209113</td>
-<td align="right">-1.4269107</td>
-<td align="right">0.1536056</td>
-<td align="right">0.1171632</td>
-<td align="right">1.3724168</td>
+<td align="right">0.4054694</td>
+<td align="right">0.6137180</td>
+<td align="right">-1.4708868</td>
+<td align="right">0.1413217</td>
+<td align="right">0.1166787</td>
+<td align="right">1.3274071</td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">equipment_91</td>
-<td align="right">0.5097874</td>
-<td align="right">0.5745362</td>
-<td align="right">-1.1727049</td>
-<td align="right">0.2409142</td>
-<td align="right">0.1599607</td>
-<td align="right">1.5504869</td>
+<td align="right">0.5769159</td>
+<td align="right">0.5553833</td>
+<td align="right">-0.9904130</td>
+<td align="right">0.3219723</td>
+<td align="right">0.1885969</td>
+<td align="right">1.6966004</td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">equipment_101</td>
-<td align="right">0.6366696</td>
-<td align="right">0.7441437</td>
-<td align="right">-0.6067436</td>
-<td align="right">0.5440211</td>
-<td align="right">0.1405004</td>
-<td align="right">2.7315902</td>
+<td align="right">0.6124614</td>
+<td align="right">0.7429105</td>
+<td align="right">-0.6599307</td>
+<td align="right">0.5092983</td>
+<td align="right">0.1349648</td>
+<td align="right">2.6048096</td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">med_list_11</td>
-<td align="right">0.5737145</td>
-<td align="right">1.0456866</td>
-<td align="right">-0.5313479</td>
-<td align="right">0.5951777</td>
-<td align="right">0.0677153</td>
-<td align="right">4.3936921</td>
+<td align="right">0.5354409</td>
+<td align="right">1.0237600</td>
+<td align="right">-0.6101672</td>
+<td align="right">0.5417511</td>
+<td align="right">0.0659075</td>
+<td align="right">3.9480385</td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">med_list_71</td>
-<td align="right">1.7982491</td>
-<td align="right">1.1020779</td>
-<td align="right">0.5324610</td>
-<td align="right">0.5944068</td>
-<td align="right">0.2134887</td>
-<td align="right">17.1324091</td>
+<td align="right">1.8994421</td>
+<td align="right">1.0945017</td>
+<td align="right">0.5861665</td>
+<td align="right">0.5577636</td>
+<td align="right">0.2271144</td>
+<td align="right">17.7260264</td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">med_list_131</td>
-<td align="right">0.4566401</td>
-<td align="right">1.1132559</td>
-<td align="right">-0.7041146</td>
-<td align="right">0.4813614</td>
-<td align="right">0.0506082</td>
-<td align="right">4.2328636</td>
+<td align="right">0.6459227</td>
+<td align="right">1.0442655</td>
+<td align="right">-0.4185482</td>
+<td align="right">0.6755463</td>
+<td align="right">0.0834644</td>
+<td align="right">5.3269966</td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">alt_med_type_61</td>
-<td align="right">1.2877660</td>
-<td align="right">1.3656059</td>
-<td align="right">0.1851991</td>
-<td align="right">0.8530729</td>
-<td align="right">0.0881413</td>
-<td align="right">20.5762551</td>
+<td align="right">1.3936414</td>
+<td align="right">1.3559524</td>
+<td align="right">0.2447874</td>
+<td align="right">0.8066211</td>
+<td align="right">0.0964229</td>
+<td align="right">21.7445425</td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">alt_med_type_111</td>
-<td align="right">0.1775063</td>
-<td align="right">1.8750522</td>
-<td align="right">-0.9219740</td>
-<td align="right">0.3565421</td>
-<td align="right">0.0030854</td>
-<td align="right">4.4961800</td>
+<td align="right">0.2174913</td>
+<td align="right">1.7434637</td>
+<td align="right">-0.8750376</td>
+<td align="right">0.3815534</td>
+<td align="right">0.0043541</td>
+<td align="right">4.6766064</td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">alt_med_type_151</td>
-<td align="right">0.1344560</td>
-<td align="right">1.6492345</td>
-<td align="right">-1.2166361</td>
-<td align="right">0.2237427</td>
-<td align="right">0.0039819</td>
-<td align="right">2.8671333</td>
+<td align="right">0.1273757</td>
+<td align="right">1.6064917</td>
+<td align="right">-1.2826798</td>
+<td align="right">0.1996043</td>
+<td align="right">0.0039192</td>
+<td align="right">2.5346129</td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">alt_med_type_161</td>
-<td align="right">11.2688856</td>
-<td align="right">2.0010687</td>
-<td align="right">1.2103760</td>
-<td align="right">0.2261347</td>
-<td align="right">0.4513224</td>
-<td align="right">931.1074060</td>
+<td align="right">9.4753562</td>
+<td align="right">1.8185771</td>
+<td align="right">1.2365131</td>
+<td align="right">0.2162679</td>
+<td align="right">0.4700089</td>
+<td align="right">633.5213842</td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">behavior_tech_used_11</td>
-<td align="right">0.8186485</td>
-<td align="right">0.6061117</td>
-<td align="right">-0.3301380</td>
-<td align="right">0.7412957</td>
-<td align="right">0.2414506</td>
-<td align="right">2.6662654</td>
+<td align="right">0.8473993</td>
+<td align="right">0.5967687</td>
+<td align="right">-0.2774663</td>
+<td align="right">0.7814221</td>
+<td align="right">0.2562087</td>
+<td align="right">2.7235717</td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">behavior_tech_used_21</td>
-<td align="right">0.5879165</td>
-<td align="right">0.6110525</td>
-<td align="right">-0.8692713</td>
-<td align="right">0.3846987</td>
-<td align="right">0.1694473</td>
-<td align="right">1.9115095</td>
-<td align="left"></td>
-</tr>
-<tr class="odd">
-<td align="left">behavior_tech_used_31</td>
-<td align="right">2.4642245</td>
-<td align="right">0.5717784</td>
-<td align="right">1.5773194</td>
-<td align="right">0.1147220</td>
-<td align="right">0.8222314</td>
-<td align="right">7.9028332</td>
+<td align="right">0.6708734</td>
+<td align="right">0.5888682</td>
+<td align="right">-0.6778678</td>
+<td align="right">0.4978555</td>
+<td align="right">0.2036059</td>
+<td align="right">2.1027017</td>
 <td align="left"></td>
 </tr>
 <tr class="even">
-<td align="left">behavior_tech_used_41</td>
-<td align="right">2.1954742</td>
-<td align="right">0.5649310</td>
-<td align="right">1.3920249</td>
-<td align="right">0.1639148</td>
-<td align="right">0.7383448</td>
-<td align="right">6.8990352</td>
+<td align="left">behavior_tech_used_31</td>
+<td align="right">2.5547422</td>
+<td align="right">0.5717267</td>
+<td align="right">1.6405590</td>
+<td align="right">0.1008890</td>
+<td align="right">0.8548735</td>
+<td align="right">8.2114473</td>
 <td align="left"></td>
 </tr>
 <tr class="odd">
+<td align="left">behavior_tech_used_41</td>
+<td align="right">2.0414279</td>
+<td align="right">0.5532622</td>
+<td align="right">1.2898939</td>
+<td align="right">0.1970875</td>
+<td align="right">0.6996660</td>
+<td align="right">6.2465461</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
 <td align="left">behavior_tech_used_61</td>
-<td align="right">0.1238041</td>
-<td align="right">0.6600319</td>
-<td align="right">-3.1650818</td>
-<td align="right">0.0015504</td>
-<td align="right">0.0307268</td>
-<td align="right">0.4189096</td>
+<td align="right">0.1242707</td>
+<td align="right">0.6500573</td>
+<td align="right">-3.2078601</td>
+<td align="right">0.0013373</td>
+<td align="right">0.0314935</td>
+<td align="right">0.4130522</td>
 <td align="left">**</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">behavior_tech_used_71</td>
-<td align="right">0.6624902</td>
-<td align="right">0.6056624</td>
-<td align="right">-0.6798334</td>
-<td align="right">0.4966100</td>
-<td align="right">0.1980316</td>
-<td align="right">2.1783160</td>
+<td align="right">0.6484909</td>
+<td align="right">0.6014467</td>
+<td align="right">-0.7201092</td>
+<td align="right">0.4714578</td>
+<td align="right">0.1955573</td>
+<td align="right">2.1139306</td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">behavior_tech_used_81</td>
-<td align="right">1.4842043</td>
-<td align="right">0.6502914</td>
-<td align="right">0.6072337</td>
-<td align="right">0.5436959</td>
-<td align="right">0.4155499</td>
-<td align="right">5.4482518</td>
+<td align="right">1.4649023</td>
+<td align="right">0.6424768</td>
+<td align="right">0.5942449</td>
+<td align="right">0.5523483</td>
+<td align="right">0.4166149</td>
+<td align="right">5.2980937</td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">behavior_tech_used_91</td>
-<td align="right">1.6618794</td>
-<td align="right">0.9746232</td>
-<td align="right">0.5211749</td>
-<td align="right">0.6022450</td>
-<td align="right">0.2426910</td>
-<td align="right">11.5430341</td>
+<td align="right">2.0168349</td>
+<td align="right">0.9478596</td>
+<td align="right">0.7401195</td>
+<td align="right">0.4592275</td>
+<td align="right">0.3130445</td>
+<td align="right">13.4198170</td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">behavior_tech_used_101</td>
-<td align="right">1.8161413</td>
-<td align="right">0.6723437</td>
-<td align="right">0.8875135</td>
-<td align="right">0.3748025</td>
-<td align="right">0.4907008</td>
-<td align="right">7.0471416</td>
+<td align="right">1.6212929</td>
+<td align="right">0.6601580</td>
+<td align="right">0.7319822</td>
+<td align="right">0.4641794</td>
+<td align="right">0.4476822</td>
+<td align="right">6.1326401</td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">behavior_tech_used_111</td>
-<td align="right">1.2344762</td>
-<td align="right">0.7596054</td>
-<td align="right">0.2773107</td>
-<td align="right">0.7815415</td>
-<td align="right">0.2764922</td>
-<td align="right">5.6818706</td>
-<td align="left"></td>
-</tr>
-<tr class="odd">
-<td align="left">behavior_tech_used_121</td>
-<td align="right">0.4549764</td>
-<td align="right">0.6613404</td>
-<td align="right">-1.1907782</td>
-<td align="right">0.2337407</td>
-<td align="right">0.1197824</td>
-<td align="right">1.6504997</td>
+<td align="right">1.1019030</td>
+<td align="right">0.7536657</td>
+<td align="right">0.1287556</td>
+<td align="right">0.8975511</td>
+<td align="right">0.2490616</td>
+<td align="right">4.9862674</td>
 <td align="left"></td>
 </tr>
 <tr class="even">
-<td align="left">behavior_tech_used_131</td>
-<td align="right">2.0253833</td>
-<td align="right">0.6658404</td>
-<td align="right">1.0599522</td>
-<td align="right">0.2891664</td>
-<td align="right">0.5567706</td>
-<td align="right">7.8232522</td>
+<td align="left">behavior_tech_used_121</td>
+<td align="right">0.4695574</td>
+<td align="right">0.6553433</td>
+<td align="right">-1.1535402</td>
+<td align="right">0.2486887</td>
+<td align="right">0.1255740</td>
+<td align="right">1.6865660</td>
 <td align="left"></td>
 </tr>
 <tr class="odd">
+<td align="left">behavior_tech_used_131</td>
+<td align="right">1.7031210</td>
+<td align="right">0.6347315</td>
+<td align="right">0.8388782</td>
+<td align="right">0.4015376</td>
+<td align="right">0.4945683</td>
+<td align="right">6.1469787</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
 <td align="left">behavior_tech_used_141</td>
-<td align="right">3.9070533</td>
-<td align="right">0.6560023</td>
-<td align="right">2.0774065</td>
-<td align="right">0.0377641</td>
-<td align="right">1.1279185</td>
-<td align="right">15.1977469</td>
+<td align="right">3.7776716</td>
+<td align="right">0.6495979</td>
+<td align="right">2.0460471</td>
+<td align="right">0.0407517</td>
+<td align="right">1.1017628</td>
+<td align="right">14.4718262</td>
 <td align="left">*</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">behavior_tech_used_151</td>
-<td align="right">0.7522822</td>
-<td align="right">0.8377620</td>
-<td align="right">-0.3397668</td>
-<td align="right">0.7340321</td>
-<td align="right">0.1406677</td>
-<td align="right">3.9321685</td>
+<td align="right">0.8096975</td>
+<td align="right">0.8199907</td>
+<td align="right">-0.2574353</td>
+<td align="right">0.7968427</td>
+<td align="right">0.1589333</td>
+<td align="right">4.1212684</td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">behavior_tech_used_161</td>
-<td align="right">0.6801146</td>
-<td align="right">0.8509200</td>
-<td align="right">-0.4530320</td>
-<td align="right">0.6505257</td>
-<td align="right">0.1254705</td>
-<td align="right">3.6713225</td>
+<td align="right">0.7241156</td>
+<td align="right">0.8456438</td>
+<td align="right">-0.3817261</td>
+<td align="right">0.7026646</td>
+<td align="right">0.1350252</td>
+<td align="right">3.8676273</td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">behavior_tech_used_171</td>
-<td align="right">0.2926088</td>
-<td align="right">0.7682460</td>
-<td align="right">-1.5996421</td>
-<td align="right">0.1096780</td>
-<td align="right">0.0602621</td>
-<td align="right">1.2772800</td>
+<td align="right">0.3167848</td>
+<td align="right">0.7598583</td>
+<td align="right">-1.5128250</td>
+<td align="right">0.1303241</td>
+<td align="right">0.0666365</td>
+<td align="right">1.3659092</td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">behavior_tech_used_181</td>
-<td align="right">0.6431767</td>
-<td align="right">0.5733025</td>
-<td align="right">-0.7698131</td>
-<td align="right">0.4414108</td>
-<td align="right">0.2018748</td>
-<td align="right">1.9487507</td>
+<td align="right">0.6671493</td>
+<td align="right">0.5676271</td>
+<td align="right">-0.7130409</td>
+<td align="right">0.4758204</td>
+<td align="right">0.2119883</td>
+<td align="right">2.0011066</td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">male1</td>
-<td align="right">0.9036248</td>
-<td align="right">0.5442062</td>
-<td align="right">-0.1862182</td>
-<td align="right">0.8522737</td>
-<td align="right">0.3114483</td>
-<td align="right">2.6873702</td>
+<td align="right">0.8835662</td>
+<td align="right">0.5419212</td>
+<td align="right">-0.2284262</td>
+<td align="right">0.8193149</td>
+<td align="right">0.3052979</td>
+<td align="right">2.6087621</td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">behavior_prog_11</td>
-<td align="right">0.2839715</td>
-<td align="right">1.1646966</td>
-<td align="right">-1.0808663</td>
-<td align="right">0.2797566</td>
-<td align="right">0.0264744</td>
-<td align="right">2.7831565</td>
-<td align="left"></td>
-</tr>
-<tr class="even">
-<td align="left">behavior_prog_31</td>
-<td align="right">0.4383582</td>
-<td align="right">1.1875345</td>
-<td align="right">-0.6944799</td>
-<td align="right">0.4873813</td>
-<td align="right">0.0386975</td>
-<td align="right">4.2862907</td>
+<td align="right">0.4676102</td>
+<td align="right">1.0347853</td>
+<td align="right">-0.7345680</td>
+<td align="right">0.4626026</td>
+<td align="right">0.0572599</td>
+<td align="right">3.5735888</td>
 <td align="left"></td>
 </tr>
 <tr class="odd">
-<td align="left">fear_anxiety1</td>
-<td align="right">0.4405850</td>
-<td align="right">0.6183120</td>
-<td align="right">-1.3256284</td>
-<td align="right">0.1849628</td>
-<td align="right">0.1257591</td>
-<td align="right">1.4497783</td>
+<td align="left">behavior_prog_31</td>
+<td align="right">0.5320571</td>
+<td align="right">1.1690990</td>
+<td align="right">-0.5397357</td>
+<td align="right">0.5893793</td>
+<td align="right">0.0492074</td>
+<td align="right">5.0388290</td>
 <td align="left"></td>
 </tr>
 <tr class="even">
+<td align="left">fear_anxiety1</td>
+<td align="right">0.4092234</td>
+<td align="right">0.6108689</td>
+<td align="right">-1.4626607</td>
+<td align="right">0.1435603</td>
+<td align="right">0.1181176</td>
+<td align="right">1.3220370</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
 <td align="left">reward1</td>
-<td align="right">0.8829537</td>
-<td align="right">0.7970686</td>
-<td align="right">-0.1561754</td>
-<td align="right">0.8758948</td>
-<td align="right">0.1810412</td>
-<td align="right">4.2816831</td>
+<td align="right">1.0790331</td>
+<td align="right">0.7630113</td>
+<td align="right">0.0996911</td>
+<td align="right">0.9205896</td>
+<td align="right">0.2380555</td>
+<td align="right">4.9386322</td>
 <td align="left"></td>
 </tr>
 </tbody>

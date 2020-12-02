@@ -226,6 +226,7 @@ excludes <- vector()
 df_agg <- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes))
 df_agg$agg_avg <- as.factor(ifelse(df_agg$agg_avg <= 4, 0, 1))
+
 summary(df_agg)
 ```
 
@@ -233,6 +234,9 @@ summary(df_agg)
 # Fit model to data.
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
+summary(m)
+
+print(vif(m))
 
 df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 #df_results$p.value <- p.adjust(df_results$p.value, method='BH')
@@ -261,9 +265,7 @@ df_agg <- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes),
     min_cutoff=20)
 df_agg$agg_conf <- as.factor(ifelse(df_agg$agg_conf <= 4, 0, 1))
-summary(df_agg)
 
-#df_agg <- apply_min_xtab(df_agg)
 summary(df_agg)
 ```
 
@@ -271,6 +273,9 @@ summary(df_agg)
 # Fit model to data.
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
+summary(m)
+
+print(vif(m))
 
 df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 #df_results$p.value <- p.adjust(df_results$p.value, method='BH')
@@ -299,6 +304,7 @@ df_agg <- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes),
     min_cutoff=10)
 df_agg$agg_idh <- as.factor(ifelse(df_agg$agg_idh <= 4, 0, 1))
+
 summary(df_agg)
 ```
 
@@ -306,6 +312,9 @@ summary(df_agg)
 # Fit model to data.
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
+summary(m)
+
+print(vif(m))
 
 df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 #df_results$p.value <- p.adjust(df_results$p.value, method='BH')
@@ -334,6 +343,7 @@ df_agg <- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes),
     min_cutoff=10)
 df_agg$agg_ext_ppl <- as.factor(ifelse(df_agg$agg_ext_ppl <= 4, 0, 1))
+
 summary(df_agg)
 ```
 
@@ -341,6 +351,9 @@ summary(df_agg)
 # Fit model to data.
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
+summary(m)
+
+print(vif(m))
 
 df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 #df_results$p.value <- p.adjust(df_results$p.value, method='BH')
@@ -369,6 +382,7 @@ df_agg <- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes),
     min_cutoff=10)
 df_agg$agg_ext_dog <- as.factor(ifelse(df_agg$agg_ext_dog <= 4, 0, 1))
+
 summary(df_agg)
 ```
 
@@ -376,6 +390,9 @@ summary(df_agg)
 # Fit model to data.
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
+summary(m)
+
+print(vif(m))
 
 df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 #df_results$p.value <- p.adjust(df_results$p.value, method='BH')
@@ -404,6 +421,10 @@ df_agg <- apply_binary_response_criteria(
     get_agg_data_frame(df.mod, predictors, outcome, excludes),
     min_cutoff=10)
 df_agg$agg_pred <- as.factor(ifelse(df_agg$agg_pred <= 4, 0, 1))
+
+# Collinearity adjustments.
+df_agg <- subset(df_agg, select=-consultant_cred) # VIF 12.67
+
 summary(df_agg)
 ```
 
@@ -411,6 +432,9 @@ summary(df_agg)
 # Fit model to data.
 f <- as.formula(paste0(outcome, "~", "."))
 m <- glm(f, data=df_agg, family="binomial")
+summary(m)
+
+print(vif(m))
 
 df_results <- broom::tidy(m, conf.int=TRUE, exponentiate=TRUE)
 #df_results$p.value <- p.adjust(df_results$p.value, method='BH')
