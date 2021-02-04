@@ -33,7 +33,6 @@ Some columns need to have their values standardized.
 # Convert "dog_sex" into "male" columns.
 df.mod <- df.orig
 df.mod$male <- ifelse(df.mod$dog_sex==1, 1, 0)
-df.mod <- df.mod[!is.na(df.mod$male),]
 
 # Create dummy variables for the levels 1-4 of "behavior_prog".
 # We ignore levels 5 and 6 because they are irrelevant to the question.
@@ -139,6 +138,25 @@ for (col in names(df.mod)) {
 str(df.mod)
 ```
 
+
+Get the number of dogs that used equipment:
+
+```{r}
+df.mod$used_equip <- ifelse(
+  (df.mod$behavior_tech_used_1 == 1 | df.mod$behavior_tech_used_2 == 1
+   | df.mod$behavior_tech_used_3 == 1 | df.mod$behavior_tech_used_4 == 1
+   | df.mod$behavior_tech_used_5 == 1 | df.mod$behavior_tech_used_6 == 1
+   | df.mod$behavior_tech_used_7 == 1 | df.mod$behavior_tech_used_8 == 1
+   | df.mod$behavior_tech_used_9 == 1 | df.mod$behavior_tech_used_10 == 1
+   | df.mod$behavior_tech_used_11 == 1 | df.mod$behavior_tech_used_12 == 1
+   | df.mod$behavior_tech_used_13 == 1 | df.mod$behavior_tech_used_14 == 1
+   | df.mod$behavior_tech_used_15 == 1 | df.mod$behavior_tech_used_16 == 1
+   | df.mod$behavior_tech_used_17 == 1 | df.mod$behavior_tech_used_18 == 1
+   | df.mod$behavior_tech_used_19 == 1), TRUE, FALSE)
+
+summary(df.mod$used_equip)
+```
+
 General rule of thumb for logistic regression is that each variable should have
 at least 10 responses per response option. We apply this rule of thumb below.
 
@@ -214,6 +232,11 @@ get_agg_data_frame <- function(df, pred.patterns, outcome, excludes)
   
   return(df.out)
 }
+```
+
+```{r}
+# Drops NAs before regression
+df.mod <- df.mod[!is.na(df.mod$male),]
 ```
 
 # Overall Aggression

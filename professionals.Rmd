@@ -142,7 +142,34 @@ Let's look specifically at the professionals that participants marked as best
 (i.e., most helpful) since it isn't fully expanded in the summary above.
 
 ```{r}
-summary(df$best.prof)
+levels(df$prof.best) <- c(
+  'vet',
+  'trainer',
+  'credentialed trainer',
+  'consultant',
+  'credentialed consultant',
+  'caab',
+  'dacvb',
+  'combo'
+)
+
+df$prof_best_vet <- ifelse(
+  is.na(df$prof.best.combo), NA, ifelse(
+    grepl('vet', df$prof.best.combo), TRUE, FALSE))
+df$prof_best_trainer <- ifelse(
+  is.na(df$prof.best.combo), NA, ifelse(
+    grepl('vet', df$prof.best.combo), TRUE, FALSE))
+
+summary(df$prof.best)
+table(df$prof.best.combo)
+
+summary(df)
+```
+
+Let's apply some meaning to these levels.
+
+```{r}
+
 ```
 
 Clearly define the outcome variables for this analysis.
