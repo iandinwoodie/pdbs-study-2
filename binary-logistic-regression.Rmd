@@ -33,6 +33,7 @@ Some columns need to have their values standardized.
 # Convert "dog_sex" into "male" columns.
 df.mod <- df.orig
 df.mod$male <- ifelse(df.mod$dog_sex==1, 1, 0)
+df.mod <- df.mod[!is.na(df.mod$male),]
 
 # Create dummy variables for the levels 1-4 of "behavior_prog".
 # We ignore levels 5 and 6 because they are irrelevant to the question.
@@ -232,11 +233,6 @@ get_agg_data_frame <- function(df, pred.patterns, outcome, excludes)
   
   return(df.out)
 }
-```
-
-```{r}
-# Drops NAs before regression
-df.mod <- df.mod[!is.na(df.mod$male),]
 ```
 
 # Overall Aggression
